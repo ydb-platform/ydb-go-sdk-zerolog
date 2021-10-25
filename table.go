@@ -1,0 +1,555 @@
+package zerolog
+
+import (
+	"github.com/rs/zerolog"
+	"github.com/ydb-platform/ydb-go-sdk/v3/trace"
+	"time"
+)
+
+func Table(log *zerolog.Logger, details Details) trace.Table {
+	scope := "ydb.table"
+	t := trace.Table{}
+	if details&tablePoolRetryEvents != 0 {
+		scope := scope + ".retry"
+		t.OnPoolRetry = func(info trace.PoolRetryStartInfo) func(info trace.PoolRetryInternalInfo) func(trace.PoolRetryDoneInfo) {
+			idempotent := info.Idempotent
+			log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+				Bool("idempotent", idempotent).
+				Msg("init")
+			start := time.Now()
+			return func(info trace.PoolRetryInternalInfo) func(trace.PoolRetryDoneInfo) {
+				if info.Error == nil {
+					log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+						Dur("latency", time.Since(start)).
+						Bool("idempotent", idempotent).
+						Msg("intermediate")
+				} else {
+					log.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
+						Dur("latency", time.Since(start)).
+						Bool("idempotent", idempotent).
+						Err(info.Error).
+						Msg("intermediate")
+				}
+				return func(info trace.PoolRetryDoneInfo) {
+					if info.Error == nil {
+						log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+							Dur("latency", time.Since(start)).
+							Bool("idempotent", idempotent).
+							Int("attempts", info.Attempts).
+							Msg("finish")
+					} else {
+						log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
+							Dur("latency", time.Since(start)).
+							Bool("idempotent", idempotent).
+							Int("attempts", info.Attempts).
+							Err(info.Error).
+							Msg("finish")
+					}
+				}
+			}
+		}
+	}
+	if details&TableSessionEvents != 0 {
+		scope := scope + ".session"
+		if details&tableSessionEvents != 0 {
+			t.OnSessionNew = func(info trace.SessionNewStartInfo) func(trace.SessionNewDoneInfo) {
+				log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					Msg("try to create")
+				start := time.Now()
+				return func(info trace.SessionNewDoneInfo) {
+					if info.Error == nil {
+						log.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
+							Dur("latency", time.Since(start)).
+							Int64("nodeID", int64(info.Session.NodeID())).
+							Msg("created")
+					} else {
+						log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
+							Dur("latency", time.Since(start)).
+							Err(info.Error).
+							Msg("create failed")
+					}
+				}
+			}
+			t.OnSessionDelete = func(info trace.SessionDeleteStartInfo) func(trace.SessionDeleteDoneInfo) {
+				session := info.Session
+				log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					Uint32("nodeID", session.NodeID()).
+					Str("id", session.ID()).
+					Str("status", session.Status()).
+					Msg("try to delete")
+				start := time.Now()
+				return func(info trace.SessionDeleteDoneInfo) {
+					if info.Error == nil {
+						log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+							Dur("latency", time.Since(start)).
+							Uint32("nodeID", session.NodeID()).
+							Str("id", session.ID()).
+							Str("status", session.Status()).
+							Msg("deleted")
+					} else {
+						log.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
+							Dur("latency", time.Since(start)).
+							Uint32("nodeID", session.NodeID()).
+							Str("id", session.ID()).
+							Str("status", session.Status()).
+							Err(info.Error).
+							Msg("delete failed")
+					}
+				}
+			}
+			t.OnSessionKeepAlive = func(info trace.KeepAliveStartInfo) func(trace.KeepAliveDoneInfo) {
+				session := info.Session
+				log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					Uint32("nodeID", session.NodeID()).
+					Str("id", session.ID()).
+					Str("status", session.Status()).
+					Msg("keep-aliving")
+				start := time.Now()
+				return func(info trace.KeepAliveDoneInfo) {
+					if info.Error == nil {
+						log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+							Dur("latency", time.Since(start)).
+							Uint32("nodeID", session.NodeID()).
+							Str("id", session.ID()).
+							Str("status", session.Status()).
+							Msg("keep-alived")
+					} else {
+						log.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
+							Dur("latency", time.Since(start)).
+							Uint32("nodeID", session.NodeID()).
+							Str("id", session.ID()).
+							Str("status", session.Status()).
+							Err(info.Error).
+							Msg("keep-alive failed")
+					}
+				}
+			}
+		}
+		if details&tableSessionQueryEvents != 0 {
+			scope := scope + ".query"
+			if details&tableSessionQueryInvokeEvents != 0 {
+				scope := scope + ".invoke"
+				t.OnSessionQueryPrepare = func(info trace.SessionQueryPrepareStartInfo) func(trace.PrepareDataQueryDoneInfo) {
+					session := info.Session
+					query := info.Query
+					log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+						Uint32("nodeID", session.NodeID()).
+						Str("id", session.ID()).
+						Str("status", session.Status()).
+						Str("query", query).
+						Msg("preparing")
+					start := time.Now()
+					return func(info trace.PrepareDataQueryDoneInfo) {
+						if info.Error == nil {
+							log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+								Dur("latency", time.Since(start)).
+								Uint32("nodeID", session.NodeID()).
+								Str("id", session.ID()).
+								Str("status", session.Status()).
+								Str("query", query).
+								Str("yql", info.Result.String()).
+								Msg("prepared")
+						} else {
+							log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
+								Dur("latency", time.Since(start)).
+								Uint32("nodeID", session.NodeID()).
+								Str("id", session.ID()).
+								Str("status", session.Status()).
+								Str("query", query).
+								Err(info.Error).
+								Msg("prepare failed")
+						}
+					}
+				}
+				t.OnSessionQueryExecute = func(info trace.ExecuteDataQueryStartInfo) func(trace.SessionQueryPrepareDoneInfo) {
+					session := info.Session
+					query := info.Query
+					tx := info.Tx
+					params := info.Parameters
+					log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+						Uint32("nodeID", session.NodeID()).
+						Str("id", session.ID()).
+						Str("status", session.Status()).
+						Str("tx", tx.ID()).
+						Str("yql", query.String()).
+						Str("params", params.String()).
+						Msg("executing")
+					start := time.Now()
+					return func(info trace.SessionQueryPrepareDoneInfo) {
+						if info.Error == nil {
+							log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+								Dur("latency", time.Since(start)).
+								Uint32("nodeID", session.NodeID()).
+								Str("id", session.ID()).
+								Str("status", session.Status()).
+								Str("tx", tx.ID()).
+								Str("yql", query.String()).
+								Str("params", params.String()).
+								Bool("prepared", info.Prepared).
+								AnErr("resultErr", info.Result.Err()).
+								Msg("executed")
+						} else {
+							log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
+								Dur("latency", time.Since(start)).
+								Uint32("nodeID", session.NodeID()).
+								Str("id", session.ID()).
+								Str("status", session.Status()).
+								Str("tx", tx.ID()).
+								Str("yql", query.String()).
+								Str("params", params.String()).
+								Bool("prepared", info.Prepared).
+								Err(info.Error).
+								Msg("execute failed")
+						}
+					}
+				}
+			}
+			if details&tableSessionQueryStreamEvents != 0 {
+				scope := scope + ".stream"
+				t.OnSessionQueryStreamExecute = func(info trace.SessionQueryStreamExecuteStartInfo) func(trace.SessionQueryStreamExecuteDoneInfo) {
+					session := info.Session
+					query := info.Query
+					params := info.Parameters
+					log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+						Uint32("nodeID", session.NodeID()).
+						Str("id", session.ID()).
+						Str("status", session.Status()).
+						Str("yql", query.String()).
+						Str("params", params.String()).
+						Msg("executing")
+					start := time.Now()
+					return func(info trace.SessionQueryStreamExecuteDoneInfo) {
+						if info.Error == nil {
+							log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+								Dur("latency", time.Since(start)).
+								Uint32("nodeID", session.NodeID()).
+								Str("id", session.ID()).
+								Str("status", session.Status()).
+								Str("yql", query.String()).
+								Str("params", params.String()).
+								AnErr("resultErr", info.Result.Err()).
+								Err(info.Error).
+								Msg("executed")
+						} else {
+							log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
+								Dur("latency", time.Since(start)).
+								Uint32("nodeID", session.NodeID()).
+								Str("id", session.ID()).
+								Str("status", session.Status()).
+								Str("yql", query.String()).
+								Str("params", params.String()).
+								Err(info.Error).
+								Msg("execute failed")
+						}
+					}
+				}
+				t.OnSessionQueryStreamRead = func(info trace.SessionQueryStreamReadStartInfo) func(trace.SessionQueryStreamReadDoneInfo) {
+					session := info.Session
+					log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+						Uint32("nodeID", session.NodeID()).
+						Str("id", session.ID()).
+						Str("status", session.Status()).
+						Msg("reading")
+					start := time.Now()
+					return func(info trace.SessionQueryStreamReadDoneInfo) {
+						if info.Error == nil {
+							log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+								Dur("latency", time.Since(start)).
+								Uint32("nodeID", session.NodeID()).
+								Str("id", session.ID()).
+								Str("status", session.Status()).
+								AnErr("resultErr", info.Result.Err()).
+								Msg("read")
+						} else {
+							log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
+								Dur("latency", time.Since(start)).
+								Uint32("nodeID", session.NodeID()).
+								Str("id", session.ID()).
+								Str("status", session.Status()).
+								Err(info.Error).
+								Msg("read failed")
+						}
+					}
+				}
+			}
+		}
+		if details&tableSessionTransactionEvents != 0 {
+			scope := scope + ".transaction"
+			t.OnSessionTransactionBegin = func(info trace.SessionTransactionBeginStartInfo) func(trace.SessionTransactionBeginDoneInfo) {
+				session := info.Session
+				log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					Uint32("nodeID", session.NodeID()).
+					Str("id", session.ID()).
+					Str("status", session.Status()).
+					Msg("beginning")
+				start := time.Now()
+				return func(info trace.SessionTransactionBeginDoneInfo) {
+					if info.Error == nil {
+						log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+							Dur("latency", time.Since(start)).
+							Uint32("nodeID", session.NodeID()).
+							Str("id", session.ID()).
+							Str("status", session.Status()).
+							Str("tx", info.Tx.ID()).
+							Msg("began")
+					} else {
+						log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+							Dur("latency", time.Since(start)).
+							Uint32("nodeID", session.NodeID()).
+							Str("id", session.ID()).
+							Str("status", session.Status()).
+							Err(info.Error).
+							Msg("begin failed")
+					}
+				}
+			}
+			t.OnSessionTransactionCommit = func(info trace.SessionTransactionCommitStartInfo) func(trace.SessionTransactionCommitDoneInfo) {
+				session := info.Session
+				tx := info.Tx
+				log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					Uint32("nodeID", session.NodeID()).
+					Str("id", session.ID()).
+					Str("status", session.Status()).
+					Str("tx", tx.ID()).
+					Msg("committing")
+				start := time.Now()
+				return func(info trace.SessionTransactionCommitDoneInfo) {
+					if info.Error == nil {
+						log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+							Dur("latency", time.Since(start)).
+							Uint32("nodeID", session.NodeID()).
+							Str("id", session.ID()).
+							Str("status", session.Status()).
+							Str("tx", tx.ID()).
+							Msg("committed")
+					} else {
+						log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+							Dur("latency", time.Since(start)).
+							Uint32("nodeID", session.NodeID()).
+							Str("id", session.ID()).
+							Str("status", session.Status()).
+							Str("tx", tx.ID()).
+							Err(info.Error).
+							Msg("commit failed")
+					}
+				}
+			}
+			t.OnSessionTransactionRollback = func(info trace.SessionTransactionRollbackStartInfo) func(trace.SessionTransactionRollbackDoneInfo) {
+				session := info.Session
+				tx := info.Tx
+				log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					Uint32("nodeID", session.NodeID()).
+					Str("id", session.ID()).
+					Str("status", session.Status()).
+					Str("tx", tx.ID()).
+					Msg("try to rollback")
+				start := time.Now()
+				return func(info trace.SessionTransactionRollbackDoneInfo) {
+					if info.Error == nil {
+						log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+							Dur("latency", time.Since(start)).
+							Uint32("nodeID", session.NodeID()).
+							Str("id", session.ID()).
+							Str("status", session.Status()).
+							Str("tx", tx.ID()).
+							Msg("rollback done")
+					} else {
+						log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
+							Dur("latency", time.Since(start)).
+							Uint32("nodeID", session.NodeID()).
+							Str("id", session.ID()).
+							Str("status", session.Status()).
+							Str("tx", tx.ID()).
+							Err(info.Error).
+							Msg("rollback failed")
+					}
+				}
+			}
+		}
+	}
+	if details&TablePoolEvents != 0 {
+		scope := scope + ".pool"
+		if details&tablePoolLifeCycleEvents != 0 {
+			t.OnPoolInit = func(info trace.PoolInitStartInfo) func(trace.PoolInitDoneInfo) {
+				log.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					Msg("initializing")
+				start := time.Now()
+				return func(info trace.PoolInitDoneInfo) {
+					log.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
+						Dur("latency", time.Since(start)).
+						Int("minSize", info.KeepAliveMinSize).
+						Int("maxSize", info.Limit).
+						Msg("initialized")
+				}
+			}
+			t.OnPoolClose = func(info trace.PoolCloseStartInfo) func(trace.PoolCloseDoneInfo) {
+				log.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					Msg("closing")
+				start := time.Now()
+				return func(info trace.PoolCloseDoneInfo) {
+					if info.Error != nil {
+						log.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
+							Dur("latency", time.Since(start)).
+							Msg("closed")
+					} else {
+						log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
+							Dur("latency", time.Since(start)).
+							Err(info.Error).
+							Msg("close failed")
+					}
+				}
+			}
+		}
+		if details&tablePoolSessionLifeCycleEvents != 0 {
+			scope := scope + ".session"
+			t.OnPoolSessionNew = func(info trace.PoolSessionNewStartInfo) func(trace.PoolSessionNewDoneInfo) {
+				log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					Msg("try to create")
+				start := time.Now()
+				return func(info trace.PoolSessionNewDoneInfo) {
+					if info.Error == nil {
+						session := info.Session
+						log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+							Uint32("nodeID", session.NodeID()).
+							Str("id", session.ID()).
+							Str("status", session.Status()).
+							Msg("created")
+					} else {
+						log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
+							Dur("latency", time.Since(start)).
+							Err(info.Error).
+							Msg("created")
+					}
+				}
+			}
+			t.OnPoolSessionClose = func(info trace.PoolSessionCloseStartInfo) func(trace.PoolSessionCloseDoneInfo) {
+				session := info.Session
+				log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					Uint32("nodeID", session.NodeID()).
+					Str("id", session.ID()).
+					Str("status", session.Status()).
+					Msg("closing")
+				start := time.Now()
+				return func(info trace.PoolSessionCloseDoneInfo) {
+					log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+						Dur("latency", time.Since(start)).
+						Uint32("nodeID", session.NodeID()).
+						Str("id", session.ID()).
+						Str("status", session.Status()).
+						Msg("closed")
+				}
+			}
+		}
+		if details&tablePoolAPIEvents != 0 {
+			t.OnPoolPut = func(info trace.PoolPutStartInfo) func(trace.PoolPutDoneInfo) {
+				session := info.Session
+				log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					Uint32("nodeID", session.NodeID()).
+					Str("id", session.ID()).
+					Str("status", session.Status()).
+					Msg("putting")
+				start := time.Now()
+				return func(info trace.PoolPutDoneInfo) {
+					if info.Error == nil {
+						log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+							Dur("latency", time.Since(start)).
+							Uint32("nodeID", session.NodeID()).
+							Str("id", session.ID()).
+							Str("status", session.Status()).
+							Msg("put")
+					} else {
+						log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
+							Dur("latency", time.Since(start)).
+							Uint32("nodeID", session.NodeID()).
+							Str("id", session.ID()).
+							Str("status", session.Status()).
+							Err(info.Error).
+							Msg("put failed")
+					}
+				}
+			}
+			t.OnPoolGet = func(info trace.PoolGetStartInfo) func(trace.PoolGetDoneInfo) {
+				log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					Msg("getting")
+				start := time.Now()
+				return func(info trace.PoolGetDoneInfo) {
+					if info.Error == nil {
+						session := info.Session
+						log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+							Dur("latency", time.Since(start)).
+							Uint32("nodeID", session.NodeID()).
+							Str("id", session.ID()).
+							Str("status", session.Status()).
+							Int("attempts", info.RetryAttempts).
+							Msg("got")
+					} else {
+						log.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
+							Dur("latency", time.Since(start)).
+							Int("attempts", info.RetryAttempts).
+							Err(info.Error).
+							Msg("get failed")
+					}
+				}
+			}
+			t.OnPoolWait = func(info trace.PoolWaitStartInfo) func(trace.PoolWaitDoneInfo) {
+				log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					Msg("waiting")
+				start := time.Now()
+				return func(info trace.PoolWaitDoneInfo) {
+					if info.Error == nil {
+						session := info.Session
+						log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+							Dur("latency", time.Since(start)).
+							Uint32("nodeID", session.NodeID()).
+							Str("id", session.ID()).
+							Str("status", session.Status()).
+							Msg("wait done")
+					} else {
+						log.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
+							Dur("latency", time.Since(start)).
+							Err(info.Error).
+							Msg("wait failed")
+					}
+				}
+			}
+			t.OnPoolTake = func(info trace.PoolTakeStartInfo) func(doneInfo trace.PoolTakeWaitInfo) func(doneInfo trace.PoolTakeDoneInfo) {
+				session := info.Session
+				log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					Uint32("nodeID", session.NodeID()).
+					Str("id", session.ID()).
+					Str("status", session.Status()).
+					Msg("taking")
+				start := time.Now()
+				return func(info trace.PoolTakeWaitInfo) func(info trace.PoolTakeDoneInfo) {
+					log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+						Dur("latency", time.Since(start)).
+						Uint32("nodeID", session.NodeID()).
+						Str("id", session.ID()).
+						Str("status", session.Status()).
+						Msg("taking...")
+					return func(info trace.PoolTakeDoneInfo) {
+						if info.Error == nil {
+							log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+								Dur("latency", time.Since(start)).
+								Uint32("nodeID", session.NodeID()).
+								Str("id", session.ID()).
+								Str("status", session.Status()).
+								Bool("took", info.Took).
+								Msg("took")
+						} else {
+							log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
+								Dur("latency", time.Since(start)).
+								Uint32("nodeID", session.NodeID()).
+								Str("id", session.ID()).
+								Str("status", session.Status()).
+								Bool("took", info.Took).
+								Err(info.Error).
+								Msg("take failed")
+						}
+					}
+				}
+			}
+		}
+	}
+	return t
+}
