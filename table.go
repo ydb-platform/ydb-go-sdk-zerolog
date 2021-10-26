@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// Table makes trace.Table with zerolog logging
 func Table(log *zerolog.Logger, details Details) trace.Table {
 	scope := "ydb.table"
 	t := trace.Table{}

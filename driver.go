@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// Driver makes Driver with zap logging
+// Driver makes trace.Driver with zap logging
 func Driver(log *zerolog.Logger, details Details) trace.Driver {
 	scope := "ydb.driver"
 	t := trace.Driver{}
