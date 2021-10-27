@@ -481,12 +481,12 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 							Uint32("nodeID", session.NodeID()).
 							Str("id", session.ID()).
 							Str("status", session.Status()).
-							Int("attempts", info.RetryAttempts).
+							Int("attempts", info.Attempts).
 							Msg("got")
 					} else {
 						log.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
 							Dur("latency", time.Since(start)).
-							Int("attempts", info.RetryAttempts).
+							Int("attempts", info.Attempts).
 							Err(info.Error).
 							Msg("get failed")
 					}
