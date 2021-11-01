@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/rs/zerolog v1.22.0
-	github.com/ydb-platform/ydb-go-sdk/v3 v3.2.1
+	github.com/ydb-platform/ydb-go-sdk/v3 v3.2.6
 )
 
 replace github.com/ydb-platform/ydb-go-sdk/v3 => ../ydb-go-sdk-private

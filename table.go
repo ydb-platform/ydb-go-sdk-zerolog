@@ -61,7 +61,7 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 					if info.Error == nil {
 						log.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
 							Dur("latency", time.Since(start)).
-							Int64("nodeID", int64(info.Session.NodeID())).
+							Str("id", info.Session.ID()).
 							Msg("created")
 					} else {
 						log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
@@ -74,7 +74,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 			t.OnSessionDelete = func(info trace.SessionDeleteStartInfo) func(trace.SessionDeleteDoneInfo) {
 				session := info.Session
 				log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-					Uint32("nodeID", session.NodeID()).
 					Str("id", session.ID()).
 					Str("status", session.Status()).
 					Msg("try to delete")
@@ -83,14 +82,12 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 					if info.Error == nil {
 						log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 							Dur("latency", time.Since(start)).
-							Uint32("nodeID", session.NodeID()).
 							Str("id", session.ID()).
 							Str("status", session.Status()).
 							Msg("deleted")
 					} else {
 						log.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
 							Dur("latency", time.Since(start)).
-							Uint32("nodeID", session.NodeID()).
 							Str("id", session.ID()).
 							Str("status", session.Status()).
 							Err(info.Error).
@@ -101,7 +98,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 			t.OnSessionKeepAlive = func(info trace.KeepAliveStartInfo) func(trace.KeepAliveDoneInfo) {
 				session := info.Session
 				log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-					Uint32("nodeID", session.NodeID()).
 					Str("id", session.ID()).
 					Str("status", session.Status()).
 					Msg("keep-aliving")
@@ -110,14 +106,12 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 					if info.Error == nil {
 						log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 							Dur("latency", time.Since(start)).
-							Uint32("nodeID", session.NodeID()).
 							Str("id", session.ID()).
 							Str("status", session.Status()).
 							Msg("keep-alived")
 					} else {
 						log.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
 							Dur("latency", time.Since(start)).
-							Uint32("nodeID", session.NodeID()).
 							Str("id", session.ID()).
 							Str("status", session.Status()).
 							Err(info.Error).
@@ -134,7 +128,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 					session := info.Session
 					query := info.Query
 					log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-						Uint32("nodeID", session.NodeID()).
 						Str("id", session.ID()).
 						Str("status", session.Status()).
 						Str("query", query).
@@ -144,7 +137,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 						if info.Error == nil {
 							log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 								Dur("latency", time.Since(start)).
-								Uint32("nodeID", session.NodeID()).
 								Str("id", session.ID()).
 								Str("status", session.Status()).
 								Str("query", query).
@@ -153,7 +145,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 						} else {
 							log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
 								Dur("latency", time.Since(start)).
-								Uint32("nodeID", session.NodeID()).
 								Str("id", session.ID()).
 								Str("status", session.Status()).
 								Str("query", query).
@@ -168,7 +159,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 					tx := info.Tx
 					params := info.Parameters
 					log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-						Uint32("nodeID", session.NodeID()).
 						Str("id", session.ID()).
 						Str("status", session.Status()).
 						Str("tx", tx.ID()).
@@ -180,7 +170,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 						if info.Error == nil {
 							log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 								Dur("latency", time.Since(start)).
-								Uint32("nodeID", session.NodeID()).
 								Str("id", session.ID()).
 								Str("status", session.Status()).
 								Str("tx", tx.ID()).
@@ -192,7 +181,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 						} else {
 							log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
 								Dur("latency", time.Since(start)).
-								Uint32("nodeID", session.NodeID()).
 								Str("id", session.ID()).
 								Str("status", session.Status()).
 								Str("tx", tx.ID()).
@@ -212,7 +200,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 					query := info.Query
 					params := info.Parameters
 					log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-						Uint32("nodeID", session.NodeID()).
 						Str("id", session.ID()).
 						Str("status", session.Status()).
 						Str("yql", query.String()).
@@ -223,7 +210,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 						if info.Error == nil {
 							log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 								Dur("latency", time.Since(start)).
-								Uint32("nodeID", session.NodeID()).
 								Str("id", session.ID()).
 								Str("status", session.Status()).
 								Str("yql", query.String()).
@@ -234,7 +220,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 						} else {
 							log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
 								Dur("latency", time.Since(start)).
-								Uint32("nodeID", session.NodeID()).
 								Str("id", session.ID()).
 								Str("status", session.Status()).
 								Str("yql", query.String()).
@@ -247,7 +232,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 				t.OnSessionQueryStreamRead = func(info trace.SessionQueryStreamReadStartInfo) func(trace.SessionQueryStreamReadDoneInfo) {
 					session := info.Session
 					log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-						Uint32("nodeID", session.NodeID()).
 						Str("id", session.ID()).
 						Str("status", session.Status()).
 						Msg("reading")
@@ -256,7 +240,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 						if info.Error == nil {
 							log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 								Dur("latency", time.Since(start)).
-								Uint32("nodeID", session.NodeID()).
 								Str("id", session.ID()).
 								Str("status", session.Status()).
 								AnErr("resultErr", info.Result.Err()).
@@ -264,7 +247,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 						} else {
 							log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
 								Dur("latency", time.Since(start)).
-								Uint32("nodeID", session.NodeID()).
 								Str("id", session.ID()).
 								Str("status", session.Status()).
 								Err(info.Error).
@@ -279,7 +261,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 			t.OnSessionTransactionBegin = func(info trace.SessionTransactionBeginStartInfo) func(trace.SessionTransactionBeginDoneInfo) {
 				session := info.Session
 				log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-					Uint32("nodeID", session.NodeID()).
 					Str("id", session.ID()).
 					Str("status", session.Status()).
 					Msg("beginning")
@@ -288,7 +269,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 					if info.Error == nil {
 						log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 							Dur("latency", time.Since(start)).
-							Uint32("nodeID", session.NodeID()).
 							Str("id", session.ID()).
 							Str("status", session.Status()).
 							Str("tx", info.Tx.ID()).
@@ -296,7 +276,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 					} else {
 						log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 							Dur("latency", time.Since(start)).
-							Uint32("nodeID", session.NodeID()).
 							Str("id", session.ID()).
 							Str("status", session.Status()).
 							Err(info.Error).
@@ -308,7 +287,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 				session := info.Session
 				tx := info.Tx
 				log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-					Uint32("nodeID", session.NodeID()).
 					Str("id", session.ID()).
 					Str("status", session.Status()).
 					Str("tx", tx.ID()).
@@ -318,7 +296,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 					if info.Error == nil {
 						log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 							Dur("latency", time.Since(start)).
-							Uint32("nodeID", session.NodeID()).
 							Str("id", session.ID()).
 							Str("status", session.Status()).
 							Str("tx", tx.ID()).
@@ -326,7 +303,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 					} else {
 						log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 							Dur("latency", time.Since(start)).
-							Uint32("nodeID", session.NodeID()).
 							Str("id", session.ID()).
 							Str("status", session.Status()).
 							Str("tx", tx.ID()).
@@ -339,7 +315,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 				session := info.Session
 				tx := info.Tx
 				log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-					Uint32("nodeID", session.NodeID()).
 					Str("id", session.ID()).
 					Str("status", session.Status()).
 					Str("tx", tx.ID()).
@@ -349,7 +324,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 					if info.Error == nil {
 						log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 							Dur("latency", time.Since(start)).
-							Uint32("nodeID", session.NodeID()).
 							Str("id", session.ID()).
 							Str("status", session.Status()).
 							Str("tx", tx.ID()).
@@ -357,7 +331,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 					} else {
 						log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
 							Dur("latency", time.Since(start)).
-							Uint32("nodeID", session.NodeID()).
 							Str("id", session.ID()).
 							Str("status", session.Status()).
 							Str("tx", tx.ID()).
@@ -411,7 +384,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 					if info.Error == nil {
 						session := info.Session
 						log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-							Uint32("nodeID", session.NodeID()).
 							Str("id", session.ID()).
 							Str("status", session.Status()).
 							Msg("created")
@@ -426,7 +398,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 			t.OnPoolSessionClose = func(info trace.PoolSessionCloseStartInfo) func(trace.PoolSessionCloseDoneInfo) {
 				session := info.Session
 				log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-					Uint32("nodeID", session.NodeID()).
 					Str("id", session.ID()).
 					Str("status", session.Status()).
 					Msg("closing")
@@ -434,7 +405,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 				return func(info trace.PoolSessionCloseDoneInfo) {
 					log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 						Dur("latency", time.Since(start)).
-						Uint32("nodeID", session.NodeID()).
 						Str("id", session.ID()).
 						Str("status", session.Status()).
 						Msg("closed")
@@ -445,7 +415,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 			t.OnPoolPut = func(info trace.PoolPutStartInfo) func(trace.PoolPutDoneInfo) {
 				session := info.Session
 				log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-					Uint32("nodeID", session.NodeID()).
 					Str("id", session.ID()).
 					Str("status", session.Status()).
 					Msg("putting")
@@ -454,14 +423,12 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 					if info.Error == nil {
 						log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 							Dur("latency", time.Since(start)).
-							Uint32("nodeID", session.NodeID()).
 							Str("id", session.ID()).
 							Str("status", session.Status()).
 							Msg("put")
 					} else {
 						log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
 							Dur("latency", time.Since(start)).
-							Uint32("nodeID", session.NodeID()).
 							Str("id", session.ID()).
 							Str("status", session.Status()).
 							Err(info.Error).
@@ -478,7 +445,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 						session := info.Session
 						log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 							Dur("latency", time.Since(start)).
-							Uint32("nodeID", session.NodeID()).
 							Str("id", session.ID()).
 							Str("status", session.Status()).
 							Int("attempts", info.Attempts).
@@ -501,7 +467,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 						session := info.Session
 						log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 							Dur("latency", time.Since(start)).
-							Uint32("nodeID", session.NodeID()).
 							Str("id", session.ID()).
 							Str("status", session.Status()).
 							Msg("wait done")
@@ -516,7 +481,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 			t.OnPoolTake = func(info trace.PoolTakeStartInfo) func(doneInfo trace.PoolTakeWaitInfo) func(doneInfo trace.PoolTakeDoneInfo) {
 				session := info.Session
 				log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-					Uint32("nodeID", session.NodeID()).
 					Str("id", session.ID()).
 					Str("status", session.Status()).
 					Msg("taking")
@@ -524,7 +488,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 				return func(info trace.PoolTakeWaitInfo) func(info trace.PoolTakeDoneInfo) {
 					log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 						Dur("latency", time.Since(start)).
-						Uint32("nodeID", session.NodeID()).
 						Str("id", session.ID()).
 						Str("status", session.Status()).
 						Msg("taking...")
@@ -532,7 +495,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 						if info.Error == nil {
 							log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 								Dur("latency", time.Since(start)).
-								Uint32("nodeID", session.NodeID()).
 								Str("id", session.ID()).
 								Str("status", session.Status()).
 								Bool("took", info.Took).
@@ -540,7 +502,6 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 						} else {
 							log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
 								Dur("latency", time.Since(start)).
-								Uint32("nodeID", session.NodeID()).
 								Str("id", session.ID()).
 								Str("status", session.Status()).
 								Bool("took", info.Took).
