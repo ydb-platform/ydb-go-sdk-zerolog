@@ -1,16 +1,17 @@
 package zerolog
 
 import (
+	"time"
+
 	"github.com/rs/zerolog"
 	"github.com/ydb-platform/ydb-go-sdk/v3/trace"
-	"time"
 )
 
 // Driver makes trace.Driver with zap logging
-func Driver(log *zerolog.Logger, details Details) trace.Driver {
+func Driver(log *zerolog.Logger, details trace.Details) trace.Driver {
 	scope := "ydb.driver"
 	t := trace.Driver{}
-	if details&driverNetEvents != 0 {
+	if details&trace.DriverNetEvents != 0 {
 		scope := scope + ".net"
 		t.OnNetRead = func(info trace.NetReadStartInfo) func(trace.NetReadDoneInfo) {
 			address := info.Address
@@ -101,7 +102,7 @@ func Driver(log *zerolog.Logger, details Details) trace.Driver {
 			}
 		}
 	}
-	if details&DriverCoreEvents != 0 {
+	if details&trace.DriverCoreEvents != 0 {
 		scope := scope + ".core"
 		t.OnConnTake = func(info trace.ConnTakeStartInfo) func(trace.ConnTakeDoneInfo) {
 			address := info.Endpoint.Address()
@@ -243,7 +244,7 @@ func Driver(log *zerolog.Logger, details Details) trace.Driver {
 			}
 		}
 	}
-	if details&DriverDiscoveryEvents != 0 {
+	if details&trace.DriverDiscoveryEvents != 0 {
 		scope := scope + ".discovery"
 		t.OnDiscovery = func(info trace.DiscoveryStartInfo) func(trace.DiscoveryDoneInfo) {
 			log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
@@ -264,7 +265,7 @@ func Driver(log *zerolog.Logger, details Details) trace.Driver {
 			}
 		}
 	}
-	if details&DriverClusterEvents != 0 {
+	if details&trace.DriverClusterEvents != 0 {
 		scope := scope + ".cluster"
 		t.OnClusterGet = func(info trace.ClusterGetStartInfo) func(trace.ClusterGetDoneInfo) {
 			log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
@@ -356,7 +357,7 @@ func Driver(log *zerolog.Logger, details Details) trace.Driver {
 			}
 		}
 	}
-	if details&DriverCredentialsEvents != 0 {
+	if details&trace.DriverCredentialsEvents != 0 {
 		scope := scope + ".credentials"
 		t.OnGetCredentials = func(info trace.GetCredentialsStartInfo) func(trace.GetCredentialsDoneInfo) {
 			log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).

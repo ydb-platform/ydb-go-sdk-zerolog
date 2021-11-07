@@ -1,16 +1,17 @@
 package zerolog
 
 import (
+	"time"
+
 	"github.com/rs/zerolog"
 	"github.com/ydb-platform/ydb-go-sdk/v3/trace"
-	"time"
 )
 
 // Table makes trace.Table with zerolog logging
-func Table(log *zerolog.Logger, details Details) trace.Table {
+func Table(log *zerolog.Logger, details trace.Details) trace.Table {
 	scope := "ydb.table"
 	t := trace.Table{}
-	if details&tablePoolRetryEvents != 0 {
+	if details&trace.TablePoolRetryEvents != 0 {
 		scope := scope + ".retry"
 		t.OnPoolRetry = func(info trace.PoolRetryStartInfo) func(info trace.PoolRetryInternalInfo) func(trace.PoolRetryDoneInfo) {
 			idempotent := info.Idempotent
@@ -50,9 +51,9 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 			}
 		}
 	}
-	if details&TableSessionEvents != 0 {
+	if details&trace.TableSessionEvents != 0 {
 		scope := scope + ".session"
-		if details&tableSessionEvents != 0 {
+		if details&trace.TableSessionLifeCycleEvents != 0 {
 			t.OnSessionNew = func(info trace.SessionNewStartInfo) func(trace.SessionNewDoneInfo) {
 				log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 					Msg("try to create")
@@ -120,9 +121,9 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 				}
 			}
 		}
-		if details&tableSessionQueryEvents != 0 {
+		if details&trace.TableSessionQueryEvents != 0 {
 			scope := scope + ".query"
-			if details&tableSessionQueryInvokeEvents != 0 {
+			if details&trace.TableSessionQueryInvokeEvents != 0 {
 				scope := scope + ".invoke"
 				t.OnSessionQueryPrepare = func(info trace.SessionQueryPrepareStartInfo) func(trace.PrepareDataQueryDoneInfo) {
 					session := info.Session
@@ -193,7 +194,7 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 					}
 				}
 			}
-			if details&tableSessionQueryStreamEvents != 0 {
+			if details&trace.TableSessionQueryStreamEvents != 0 {
 				scope := scope + ".stream"
 				t.OnSessionQueryStreamExecute = func(info trace.SessionQueryStreamExecuteStartInfo) func(trace.SessionQueryStreamExecuteDoneInfo) {
 					session := info.Session
@@ -256,7 +257,7 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 				}
 			}
 		}
-		if details&tableSessionTransactionEvents != 0 {
+		if details&trace.TableSessionTransactionEvents != 0 {
 			scope := scope + ".transaction"
 			t.OnSessionTransactionBegin = func(info trace.SessionTransactionBeginStartInfo) func(trace.SessionTransactionBeginDoneInfo) {
 				session := info.Session
@@ -341,9 +342,9 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 			}
 		}
 	}
-	if details&TablePoolEvents != 0 {
+	if details&trace.TablePoolEvents != 0 {
 		scope := scope + ".pool"
-		if details&tablePoolLifeCycleEvents != 0 {
+		if details&trace.TablePoolLifeCycleEvents != 0 {
 			t.OnPoolInit = func(info trace.PoolInitStartInfo) func(trace.PoolInitDoneInfo) {
 				log.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
 					Msg("initializing")
@@ -374,7 +375,7 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 				}
 			}
 		}
-		if details&tablePoolSessionLifeCycleEvents != 0 {
+		if details&trace.TablePoolSessionLifeCycleEvents != 0 {
 			scope := scope + ".session"
 			t.OnPoolSessionNew = func(info trace.PoolSessionNewStartInfo) func(trace.PoolSessionNewDoneInfo) {
 				log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
@@ -411,7 +412,7 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 				}
 			}
 		}
-		if details&tablePoolAPIEvents != 0 {
+		if details&trace.TablePoolAPIEvents != 0 {
 			t.OnPoolPut = func(info trace.PoolPutStartInfo) func(trace.PoolPutDoneInfo) {
 				session := info.Session
 				log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
@@ -464,17 +465,31 @@ func Table(log *zerolog.Logger, details Details) trace.Table {
 				start := time.Now()
 				return func(info trace.PoolWaitDoneInfo) {
 					if info.Error == nil {
-						session := info.Session
-						log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-							Dur("latency", time.Since(start)).
-							Str("id", session.ID()).
-							Str("status", session.Status()).
-							Msg("wait done")
+						if info.Session == nil {
+							log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+								Dur("latency", time.Since(start)).
+								Msg("wait done without any significant result")
+						} else {
+							log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+								Dur("latency", time.Since(start)).
+								Str("id", info.Session.ID()).
+								Str("status", info.Session.Status()).
+								Msg("wait done")
+						}
 					} else {
-						log.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
-							Dur("latency", time.Since(start)).
-							Err(info.Error).
-							Msg("wait failed")
+						if info.Session == nil {
+							log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+								Err(info.Error).
+								Dur("latency", time.Since(start)).
+								Msg("wait failed")
+						} else {
+							log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+								Err(info.Error).
+								Dur("latency", time.Since(start)).
+								Str("id", info.Session.ID()).
+								Str("status", info.Session.Status()).
+								Msg("wait failed")
+						}
 					}
 				}
 			}

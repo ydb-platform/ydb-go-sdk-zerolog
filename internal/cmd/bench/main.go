@@ -18,6 +18,7 @@ import (
 	"github.com/ydb-platform/ydb-go-sdk/v3/table"
 	"github.com/ydb-platform/ydb-go-sdk/v3/table/options"
 	"github.com/ydb-platform/ydb-go-sdk/v3/table/types"
+	"github.com/ydb-platform/ydb-go-sdk/v3/trace"
 
 	ydbZerolog "github.com/ydb-platform/ydb-go-sdk-zerolog"
 )
@@ -47,11 +48,11 @@ func main() {
 		ydb.WithSessionPoolIdleThreshold(time.Second*5),
 		ydb.WithTraceDriver(ydbZerolog.Driver(
 			&log,
-			ydbZerolog.DetailsAll,
+			trace.DetailsAll,
 		)),
 		ydb.WithTraceTable(ydbZerolog.Table(
 			&log,
-			ydbZerolog.DetailsAll,
+			trace.DetailsAll,
 		)),
 		ydb.WithGrpcConnectionTTL(5*time.Second),
 	)
