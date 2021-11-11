@@ -158,18 +158,17 @@ func Table(log *zerolog.Logger, details trace.Details) trace.Table {
 				t.OnSessionQueryExecute = func(info trace.ExecuteDataQueryStartInfo) func(trace.SessionQueryPrepareDoneInfo) {
 					session := info.Session
 					query := info.Query
-					tx := info.Tx
 					params := info.Parameters
 					log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 						Str("id", session.ID()).
 						Str("status", session.Status()).
-						Str("tx", tx.ID()).
 						Str("yql", query.String()).
 						Str("params", params.String()).
 						Msg("executing")
 					start := time.Now()
 					return func(info trace.SessionQueryPrepareDoneInfo) {
 						if info.Error == nil {
+							tx := info.Tx
 							log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 								Dur("latency", time.Since(start)).
 								Str("id", session.ID()).
@@ -185,7 +184,6 @@ func Table(log *zerolog.Logger, details trace.Details) trace.Table {
 								Dur("latency", time.Since(start)).
 								Str("id", session.ID()).
 								Str("status", session.Status()).
-								Str("tx", tx.ID()).
 								Str("yql", query.String()).
 								Str("params", params.String()).
 								Bool("prepared", info.Prepared).
