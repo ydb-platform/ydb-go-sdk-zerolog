@@ -42,6 +42,8 @@ github.com/ydb-platform/ydb-go-genproto v0.0.0-20211103074319-526e57659e16 h1:qX
 github.com/ydb-platform/ydb-go-genproto v0.0.0-20211103074319-526e57659e16/go.mod h1:cc138nptTn9eKptCQl/grxP6pBKpo/bnXDiOxuVZtps=
 github.com/ydb-platform/ydb-go-sdk/v3 v3.4.0 h1:uS2U70V6ANMZvW+fWWokVaYd0dkQxFNQIUmDulI+22o=
 github.com/ydb-platform/ydb-go-sdk/v3 v3.4.0/go.mod h1:6/fgm6mEM8ctxSBKJDd9FhOXg0y3Ftgva4R4FvnUjRs=
+github.com/ydb-platform/ydb-go-sdk/v3 v3.4.5-0.20211210140815-07ca27ef171c h1:TXgoThoiXka5MAu82aD8OO8UAgImb71I2Sk+LtorNT0=
+github.com/ydb-platform/ydb-go-sdk/v3 v3.4.5-0.20211210140815-07ca27ef171c/go.mod h1:6/fgm6mEM8ctxSBKJDd9FhOXg0y3Ftgva4R4FvnUjRs=
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
