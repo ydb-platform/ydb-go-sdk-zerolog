@@ -353,7 +353,6 @@ func Driver(log *zerolog.Logger, details trace.Details) trace.Driver {
 					Str("address", address).
 					Bool("local", dataCenter).
 					Str("state", info.State.String()).
-					Err(info.Error).
 					Msg("pessimized")
 			}
 		}

@@ -214,7 +214,6 @@ func Table(log *zerolog.Logger, details trace.Details) trace.Table {
 								Str("status", session.Status()).
 								Str("yql", query.String()).
 								Str("params", params.String()).
-								AnErr("resultErr", info.Result.Err()).
 								Err(info.Error).
 								Msg("executed")
 						} else {
@@ -242,7 +241,6 @@ func Table(log *zerolog.Logger, details trace.Details) trace.Table {
 								Dur("latency", time.Since(start)).
 								Str("id", session.ID()).
 								Str("status", session.Status()).
-								AnErr("resultErr", info.Result.Err()).
 								Msg("read")
 						} else {
 							log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
