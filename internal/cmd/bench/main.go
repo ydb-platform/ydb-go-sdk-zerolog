@@ -38,6 +38,7 @@ func main() {
 	}
 	db, err := ydb.New(
 		ctx,
+		ydb.WithConnectionString(os.Getenv("YDB_CONNECTION_STRING")),
 		ydb.WithDialTimeout(5*time.Second),
 		ydb.WithBalancer(balancer.RandomChoice()),
 		creds,
