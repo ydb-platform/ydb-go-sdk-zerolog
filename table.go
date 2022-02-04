@@ -14,34 +14,73 @@ func Table(log *zerolog.Logger, details trace.Details) trace.Table {
 	t := trace.Table{}
 	if details&trace.TablePoolRetryEvents != 0 {
 		scope := scope + ".retry"
-		t.OnPoolRetry = func(info trace.PoolRetryStartInfo) func(info trace.PoolRetryInternalInfo) func(trace.PoolRetryDoneInfo) {
+		do := scope + ".do"
+		doTx := scope + ".doTx"
+		t.OnPoolDo = func(info trace.PoolDoStartInfo) func(info trace.PoolDoInternalInfo) func(trace.PoolDoDoneInfo) {
 			idempotent := info.Idempotent
-			log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+			log.Debug().Caller().Timestamp().Str("scope", do).Str("version", version).
 				Bool("idempotent", idempotent).
 				Msg("init")
 			start := time.Now()
-			return func(info trace.PoolRetryInternalInfo) func(trace.PoolRetryDoneInfo) {
+			return func(info trace.PoolDoInternalInfo) func(trace.PoolDoDoneInfo) {
 				if info.Error == nil {
-					log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					log.Debug().Caller().Timestamp().Str("scope", do).Str("version", version).
 						Dur("latency", time.Since(start)).
 						Bool("idempotent", idempotent).
 						Msg("intermediate")
 				} else {
-					log.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					log.Warn().Caller().Timestamp().Str("scope", do).Str("version", version).
 						Dur("latency", time.Since(start)).
 						Bool("idempotent", idempotent).
 						Err(info.Error).
 						Msg("intermediate")
 				}
-				return func(info trace.PoolRetryDoneInfo) {
+				return func(info trace.PoolDoDoneInfo) {
 					if info.Error == nil {
-						log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+						log.Debug().Caller().Timestamp().Str("scope", do).Str("version", version).
 							Dur("latency", time.Since(start)).
 							Bool("idempotent", idempotent).
 							Int("attempts", info.Attempts).
 							Msg("finish")
 					} else {
-						log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
+						log.Error().Caller().Timestamp().Str("scope", do).Str("version", version).
+							Dur("latency", time.Since(start)).
+							Bool("idempotent", idempotent).
+							Int("attempts", info.Attempts).
+							Err(info.Error).
+							Msg("finish")
+					}
+				}
+			}
+		}
+		t.OnPoolDoTx = func(info trace.PoolDoTxStartInfo) func(info trace.PoolDoTxInternalInfo) func(trace.PoolDoTxDoneInfo) {
+			idempotent := info.Idempotent
+			log.Debug().Caller().Timestamp().Str("scope", doTx).Str("version", version).
+				Bool("idempotent", idempotent).
+				Msg("init")
+			start := time.Now()
+			return func(info trace.PoolDoTxInternalInfo) func(trace.PoolDoTxDoneInfo) {
+				if info.Error == nil {
+					log.Debug().Caller().Timestamp().Str("scope", doTx).Str("version", version).
+						Dur("latency", time.Since(start)).
+						Bool("idempotent", idempotent).
+						Msg("intermediate")
+				} else {
+					log.Warn().Caller().Timestamp().Str("scope", doTx).Str("version", version).
+						Dur("latency", time.Since(start)).
+						Bool("idempotent", idempotent).
+						Err(info.Error).
+						Msg("intermediate")
+				}
+				return func(info trace.PoolDoTxDoneInfo) {
+					if info.Error == nil {
+						log.Debug().Caller().Timestamp().Str("scope", doTx).Str("version", version).
+							Dur("latency", time.Since(start)).
+							Bool("idempotent", idempotent).
+							Int("attempts", info.Attempts).
+							Msg("finish")
+					} else {
+						log.Error().Caller().Timestamp().Str("scope", doTx).Str("version", version).
 							Dur("latency", time.Since(start)).
 							Bool("idempotent", idempotent).
 							Int("attempts", info.Attempts).

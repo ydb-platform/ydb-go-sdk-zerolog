@@ -14,7 +14,7 @@ import (
 	"github.com/rs/zerolog"
 
 	"github.com/ydb-platform/ydb-go-sdk/v3"
-	"github.com/ydb-platform/ydb-go-sdk/v3/balancer"
+	"github.com/ydb-platform/ydb-go-sdk/v3/balancers"
 	"github.com/ydb-platform/ydb-go-sdk/v3/table"
 	"github.com/ydb-platform/ydb-go-sdk/v3/table/options"
 	"github.com/ydb-platform/ydb-go-sdk/v3/table/types"
@@ -40,7 +40,7 @@ func main() {
 		ctx,
 		ydb.WithConnectionString(os.Getenv("YDB_CONNECTION_STRING")),
 		ydb.WithDialTimeout(5*time.Second),
-		ydb.WithBalancer(balancer.RandomChoice()),
+		ydb.WithBalancer(balancers.RandomChoice()),
 		creds,
 		ydb.WithSessionPoolSizeLimit(300),
 		ydb.WithSessionPoolIdleThreshold(time.Second*5),
