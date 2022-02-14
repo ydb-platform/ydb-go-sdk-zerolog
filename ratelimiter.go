@@ -6,6 +6,6 @@ import (
 	"github.com/ydb-platform/ydb-go-sdk/v3/trace"
 )
 
-func Retry(log *zerolog.Logger, details trace.Details) (t trace.Retry) {
+func Ratelimiter(log *zerolog.Logger, details trace.Details) (t trace.Ratelimiter) {
 	return t
 }

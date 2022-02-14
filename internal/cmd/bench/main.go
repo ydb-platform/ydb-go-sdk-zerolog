@@ -44,14 +44,7 @@ func main() {
 		creds,
 		ydb.WithSessionPoolSizeLimit(300),
 		ydb.WithSessionPoolIdleThreshold(time.Second*5),
-		ydb.WithTraceDriver(ydbZerolog.Driver(
-			&log,
-			trace.DetailsAll,
-		)),
-		ydb.WithTraceTable(ydbZerolog.Table(
-			&log,
-			trace.DetailsAll,
-		)),
+		ydbZerolog.WithTraces(&log, trace.DetailsAll),
 	)
 	if err != nil {
 		panic(err)

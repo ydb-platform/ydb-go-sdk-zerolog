@@ -16,13 +16,13 @@ func Table(log *zerolog.Logger, details trace.Details) trace.Table {
 		scope := scope + ".retry"
 		do := scope + ".do"
 		doTx := scope + ".doTx"
-		t.OnPoolDo = func(info trace.PoolDoStartInfo) func(info trace.PoolDoInternalInfo) func(trace.PoolDoDoneInfo) {
+		t.OnPoolDo = func(info trace.PoolDoStartInfo) func(info trace.PoolDoIntermediateInfo) func(trace.PoolDoDoneInfo) {
 			idempotent := info.Idempotent
 			log.Debug().Caller().Timestamp().Str("scope", do).Str("version", version).
 				Bool("idempotent", idempotent).
 				Msg("init")
 			start := time.Now()
-			return func(info trace.PoolDoInternalInfo) func(trace.PoolDoDoneInfo) {
+			return func(info trace.PoolDoIntermediateInfo) func(trace.PoolDoDoneInfo) {
 				if info.Error == nil {
 					log.Debug().Caller().Timestamp().Str("scope", do).Str("version", version).
 						Dur("latency", time.Since(start)).
@@ -33,7 +33,7 @@ func Table(log *zerolog.Logger, details trace.Details) trace.Table {
 						Dur("latency", time.Since(start)).
 						Bool("idempotent", idempotent).
 						Err(info.Error).
-						Msg("intermediate")
+						Msg("intermediate failed")
 				}
 				return func(info trace.PoolDoDoneInfo) {
 					if info.Error == nil {
@@ -53,13 +53,13 @@ func Table(log *zerolog.Logger, details trace.Details) trace.Table {
 				}
 			}
 		}
-		t.OnPoolDoTx = func(info trace.PoolDoTxStartInfo) func(info trace.PoolDoTxInternalInfo) func(trace.PoolDoTxDoneInfo) {
+		t.OnPoolDoTx = func(info trace.PoolDoTxStartInfo) func(info trace.PoolDoTxIntermediateInfo) func(trace.PoolDoTxDoneInfo) {
 			idempotent := info.Idempotent
 			log.Debug().Caller().Timestamp().Str("scope", doTx).Str("version", version).
 				Bool("idempotent", idempotent).
 				Msg("init")
 			start := time.Now()
-			return func(info trace.PoolDoTxInternalInfo) func(trace.PoolDoTxDoneInfo) {
+			return func(info trace.PoolDoTxIntermediateInfo) func(trace.PoolDoTxDoneInfo) {
 				if info.Error == nil {
 					log.Debug().Caller().Timestamp().Str("scope", doTx).Str("version", version).
 						Dur("latency", time.Since(start)).
@@ -70,7 +70,7 @@ func Table(log *zerolog.Logger, details trace.Details) trace.Table {
 						Dur("latency", time.Since(start)).
 						Bool("idempotent", idempotent).
 						Err(info.Error).
-						Msg("intermediate")
+						Msg("intermediate failed")
 				}
 				return func(info trace.PoolDoTxDoneInfo) {
 					if info.Error == nil {
@@ -165,7 +165,11 @@ func Table(log *zerolog.Logger, details trace.Details) trace.Table {
 			scope := scope + ".query"
 			if details&trace.TableSessionQueryInvokeEvents != 0 {
 				scope := scope + ".invoke"
-				t.OnSessionQueryPrepare = func(info trace.SessionQueryPrepareStartInfo) func(trace.PrepareDataQueryDoneInfo) {
+				t.OnSessionQueryPrepare = func(
+					info trace.PrepareDataQueryStartInfo,
+				) func(
+					trace.PrepareDataQueryDoneInfo,
+				) {
 					session := info.Session
 					query := info.Query
 					log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
@@ -194,7 +198,11 @@ func Table(log *zerolog.Logger, details trace.Details) trace.Table {
 						}
 					}
 				}
-				t.OnSessionQueryExecute = func(info trace.ExecuteDataQueryStartInfo) func(trace.SessionQueryPrepareDoneInfo) {
+				t.OnSessionQueryExecute = func(
+					info trace.ExecuteDataQueryStartInfo,
+				) func(
+					trace.ExecuteDataQueryDoneInfo,
+				) {
 					session := info.Session
 					query := info.Query
 					params := info.Parameters
@@ -205,7 +213,7 @@ func Table(log *zerolog.Logger, details trace.Details) trace.Table {
 						Str("params", params.String()).
 						Msg("executing")
 					start := time.Now()
-					return func(info trace.SessionQueryPrepareDoneInfo) {
+					return func(info trace.ExecuteDataQueryDoneInfo) {
 						if info.Error == nil {
 							tx := info.Tx
 							log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
@@ -234,7 +242,13 @@ func Table(log *zerolog.Logger, details trace.Details) trace.Table {
 			}
 			if details&trace.TableSessionQueryStreamEvents != 0 {
 				scope := scope + ".stream"
-				t.OnSessionQueryStreamExecute = func(info trace.SessionQueryStreamExecuteStartInfo) func(trace.SessionQueryStreamExecuteDoneInfo) {
+				t.OnSessionQueryStreamExecute = func(
+					info trace.SessionQueryStreamExecuteStartInfo,
+				) func(
+					intermediateInfo trace.SessionQueryStreamExecuteIntermediateInfo,
+				) func(
+					trace.SessionQueryStreamExecuteDoneInfo,
+				) {
 					session := info.Session
 					query := info.Query
 					params := info.Parameters
@@ -245,49 +259,95 @@ func Table(log *zerolog.Logger, details trace.Details) trace.Table {
 						Str("params", params.String()).
 						Msg("executing")
 					start := time.Now()
-					return func(info trace.SessionQueryStreamExecuteDoneInfo) {
+					return func(
+						info trace.SessionQueryStreamExecuteIntermediateInfo,
+					) func(
+						trace.SessionQueryStreamExecuteDoneInfo,
+					) {
 						if info.Error == nil {
 							log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-								Dur("latency", time.Since(start)).
 								Str("id", session.ID()).
 								Str("status", session.Status()).
 								Str("yql", query.String()).
 								Str("params", params.String()).
-								Err(info.Error).
-								Msg("executed")
+								Msg("intermediate")
 						} else {
-							log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
-								Dur("latency", time.Since(start)).
+							log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 								Str("id", session.ID()).
 								Str("status", session.Status()).
 								Str("yql", query.String()).
 								Str("params", params.String()).
 								Err(info.Error).
-								Msg("execute failed")
+								Msg("intermediate failed")
+						}
+						return func(info trace.SessionQueryStreamExecuteDoneInfo) {
+							if info.Error == nil {
+								log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+									Dur("latency", time.Since(start)).
+									Str("id", session.ID()).
+									Str("status", session.Status()).
+									Str("yql", query.String()).
+									Str("params", params.String()).
+									Err(info.Error).
+									Msg("executed")
+							} else {
+								log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
+									Dur("latency", time.Since(start)).
+									Str("id", session.ID()).
+									Str("status", session.Status()).
+									Str("yql", query.String()).
+									Str("params", params.String()).
+									Err(info.Error).
+									Msg("execute failed")
+							}
 						}
 					}
 				}
-				t.OnSessionQueryStreamRead = func(info trace.SessionQueryStreamReadStartInfo) func(trace.SessionQueryStreamReadDoneInfo) {
+				t.OnSessionQueryStreamRead = func(
+					info trace.SessionQueryStreamReadStartInfo,
+				) func(
+					trace.SessionQueryStreamReadIntermediateInfo,
+				) func(
+					trace.SessionQueryStreamReadDoneInfo,
+				) {
 					session := info.Session
 					log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 						Str("id", session.ID()).
 						Str("status", session.Status()).
 						Msg("reading")
 					start := time.Now()
-					return func(info trace.SessionQueryStreamReadDoneInfo) {
+					return func(
+						info trace.SessionQueryStreamReadIntermediateInfo,
+					) func(
+						trace.SessionQueryStreamReadDoneInfo,
+					) {
 						if info.Error == nil {
 							log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-								Dur("latency", time.Since(start)).
 								Str("id", session.ID()).
 								Str("status", session.Status()).
-								Msg("read")
+								Msg("intermediate")
 						} else {
-							log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
-								Dur("latency", time.Since(start)).
+							log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 								Str("id", session.ID()).
 								Str("status", session.Status()).
 								Err(info.Error).
-								Msg("read failed")
+								Msg("intermediate failed")
+						}
+						return func(info trace.SessionQueryStreamReadDoneInfo) {
+							if info.Error == nil {
+								log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+									Dur("latency", time.Since(start)).
+									Str("id", session.ID()).
+									Str("status", session.Status()).
+									Msg("read")
+							} else {
+								log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
+									Dur("latency", time.Since(start)).
+									Str("id", session.ID()).
+									Str("status", session.Status()).
+									Err(info.Error).
+									Msg("read failed")
+							}
 						}
 					}
 				}

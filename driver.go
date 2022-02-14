@@ -8,7 +8,7 @@ import (
 	"github.com/ydb-platform/ydb-go-sdk/v3/trace"
 )
 
-// Driver makes trace.Driver with zap logging
+// Driver makes trace.Driver with zerolog logging
 func Driver(log *zerolog.Logger, details trace.Details) trace.Driver {
 	scope := "ydb.driver"
 	t := trace.Driver{}
@@ -241,27 +241,6 @@ func Driver(log *zerolog.Logger, details trace.Details) trace.Driver {
 							Err(info.Error).
 							Msg("streaming failed")
 					}
-				}
-			}
-		}
-	}
-	if details&trace.DriverDiscoveryEvents != 0 {
-		scope := scope + ".discovery"
-		t.OnDiscovery = func(info trace.DiscoveryStartInfo) func(trace.DiscoveryDoneInfo) {
-			log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-				Msg("try to discover")
-			start := time.Now()
-			return func(info trace.DiscoveryDoneInfo) {
-				if info.Error == nil {
-					log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-						Dur("latency", time.Since(start)).
-						Strs("endpoints", info.Endpoints).
-						Msg("discover finished")
-				} else {
-					log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
-						Dur("latency", time.Since(start)).
-						Err(info.Error).
-						Msg("discover failed")
 				}
 			}
 		}
