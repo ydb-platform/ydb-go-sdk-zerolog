@@ -458,7 +458,7 @@ func Table(log *zerolog.Logger, details trace.Details) trace.Table {
 					Msg("closing")
 				start := time.Now()
 				return func(info trace.PoolCloseDoneInfo) {
-					if info.Error != nil {
+					if info.Error == nil {
 						log.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
 							Dur("latency", time.Since(start)).
 							Msg("closed")
