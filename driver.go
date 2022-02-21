@@ -247,6 +247,33 @@ func Driver(log *zerolog.Logger, details trace.Details) trace.Driver {
 	}
 	if details&trace.DriverClusterEvents != 0 {
 		scope := scope + ".cluster"
+		t.OnClusterInit = func(info trace.ClusterInitStartInfo) func(trace.ClusterInitDoneInfo) {
+			log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+				Msg("init start")
+			start := time.Now()
+			return func(info trace.ClusterInitDoneInfo) {
+				log.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					Dur("latency", time.Since(start)).
+					Msg("init done")
+			}
+		}
+		t.OnClusterClose = func(info trace.ClusterCloseStartInfo) func(trace.ClusterCloseDoneInfo) {
+			log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+				Msg("close start")
+			start := time.Now()
+			return func(info trace.ClusterCloseDoneInfo) {
+				if info.Error == nil {
+					log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+						Dur("latency", time.Since(start)).
+						Msg("close done")
+				} else {
+					log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
+						Dur("latency", time.Since(start)).
+						Err(info.Error).
+						Msg("close failed")
+				}
+			}
+		}
 		t.OnClusterGet = func(info trace.ClusterGetStartInfo) func(trace.ClusterGetDoneInfo) {
 			log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 				Msg("try to get conn")
