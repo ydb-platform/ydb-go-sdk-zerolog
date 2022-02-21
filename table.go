@@ -507,6 +507,12 @@ func Table(log *zerolog.Logger, details trace.Details) trace.Table {
 						Msg("closed")
 				}
 			}
+			t.OnPoolStateChange = func(info trace.PooStateChangeInfo) {
+				log.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					Int("size", info.Size).
+					Str("event", info.Event).
+					Msg("closed")
+			}
 		}
 		if details&trace.TablePoolAPIEvents != 0 {
 			t.OnPoolPut = func(info trace.PoolPutStartInfo) func(trace.PoolPutDoneInfo) {
@@ -585,39 +591,6 @@ func Table(log *zerolog.Logger, details trace.Details) trace.Table {
 								Str("id", info.Session.ID()).
 								Str("status", info.Session.Status()).
 								Msg("wait failed")
-						}
-					}
-				}
-			}
-			t.OnPoolTake = func(info trace.PoolTakeStartInfo) func(doneInfo trace.PoolTakeWaitInfo) func(doneInfo trace.PoolTakeDoneInfo) {
-				session := info.Session
-				log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-					Str("id", session.ID()).
-					Str("status", session.Status()).
-					Msg("taking")
-				start := time.Now()
-				return func(info trace.PoolTakeWaitInfo) func(info trace.PoolTakeDoneInfo) {
-					log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-						Dur("latency", time.Since(start)).
-						Str("id", session.ID()).
-						Str("status", session.Status()).
-						Msg("taking...")
-					return func(info trace.PoolTakeDoneInfo) {
-						if info.Error == nil {
-							log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-								Dur("latency", time.Since(start)).
-								Str("id", session.ID()).
-								Str("status", session.Status()).
-								Bool("took", info.Took).
-								Msg("took")
-						} else {
-							log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
-								Dur("latency", time.Since(start)).
-								Str("id", session.ID()).
-								Str("status", session.Status()).
-								Bool("took", info.Took).
-								Err(info.Error).
-								Msg("take failed")
 						}
 					}
 				}
