@@ -511,7 +511,7 @@ func Table(log *zerolog.Logger, details trace.Details) trace.Table {
 				log.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
 					Int("size", info.Size).
 					Str("event", info.Event).
-					Msg("closed")
+					Msg("updated")
 			}
 		}
 		if details&trace.TablePoolAPIEvents != 0 {
