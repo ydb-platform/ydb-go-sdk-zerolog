@@ -107,75 +107,87 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 	if details&trace.DriverCoreEvents != 0 {
 		scope := scope + ".core"
 		t.OnConnTake = func(info trace.ConnTakeStartInfo) func(trace.ConnTakeDoneInfo) {
-			address := info.Endpoint.Address()
-			dataCenter := info.Endpoint.LocalDC()
+			endpoint := info.Endpoint
 			l.Debug().
 				Caller().
 				Timestamp().
 				Str("scope", scope).Str("version", version).
-				Str("address", address).
-				Bool("dataCenter", dataCenter).
+				Str("address", endpoint.Address()).
+				Bool("localDC", endpoint.LocalDC()).
+				Str("location", endpoint.Location()).
+				Time("lastUpdated", endpoint.LastUpdated()).
 				Msg("try to take conn")
 			start := time.Now()
 			return func(info trace.ConnTakeDoneInfo) {
 				if info.Error == nil {
 					l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 						Dur("latency", time.Since(start)).
-						Str("address", address).
-						Bool("dataCenter", dataCenter).
+						Str("address", endpoint.Address()).
+						Bool("localDC", endpoint.LocalDC()).
+						Str("location", endpoint.Location()).
+						Time("lastUpdated", endpoint.LastUpdated()).
 						Msg("conn took")
 				} else {
 					l.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
 						Dur("latency", time.Since(start)).
-						Str("address", address).
-						Bool("dataCenter", dataCenter).
+						Str("address", endpoint.Address()).
+						Bool("localDC", endpoint.LocalDC()).
+						Str("location", endpoint.Location()).
+						Time("lastUpdated", endpoint.LastUpdated()).
 						Err(info.Error).
 						Msg("conn take failed")
 				}
 			}
 		}
 		t.OnConnRelease = func(info trace.ConnReleaseStartInfo) func(trace.ConnReleaseDoneInfo) {
-			address := info.Endpoint.Address()
-			dataCenter := info.Endpoint.LocalDC()
+			endpoint := info.Endpoint
 			l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-				Str("address", address).
-				Bool("dataCenter", dataCenter).
+				Str("address", endpoint.Address()).
+				Bool("localDC", endpoint.LocalDC()).
+				Str("location", endpoint.Location()).
+				Time("lastUpdated", endpoint.LastUpdated()).
 				Msg("try to release conn")
 			start := time.Now()
 			return func(info trace.ConnReleaseDoneInfo) {
 				l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 					Dur("latency", time.Since(start)).
-					Str("address", address).
-					Bool("dataCenter", dataCenter).
+					Str("address", endpoint.Address()).
+					Bool("localDC", endpoint.LocalDC()).
+					Str("location", endpoint.Location()).
+					Time("lastUpdated", endpoint.LastUpdated()).
 					Int("locks", info.Lock).
 					Msg("conn released")
 			}
 		}
 		t.OnConnStateChange = func(info trace.ConnStateChangeStartInfo) func(trace.ConnStateChangeDoneInfo) {
-			address := info.Endpoint.Address()
-			dataCenter := info.Endpoint.LocalDC()
+			endpoint := info.Endpoint
 			l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-				Str("address", address).
-				Bool("dataCenter", dataCenter).
+				Str("address", endpoint.Address()).
+				Bool("localDC", endpoint.LocalDC()).
+				Str("location", endpoint.Location()).
+				Time("lastUpdated", endpoint.LastUpdated()).
 				Str("state before", info.State.String()).
 				Msg("conn state change")
 			start := time.Now()
 			return func(info trace.ConnStateChangeDoneInfo) {
 				l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 					Dur("latency", time.Since(start)).
-					Str("address", address).
-					Bool("dataCenter", dataCenter).
+					Str("address", endpoint.Address()).
+					Bool("localDC", endpoint.LocalDC()).
+					Str("location", endpoint.Location()).
+					Time("lastUpdated", endpoint.LastUpdated()).
 					Str("state after", info.State.String()).
 					Msg("conn state changed")
 			}
 		}
 		t.OnConnInvoke = func(info trace.ConnInvokeStartInfo) func(trace.ConnInvokeDoneInfo) {
-			address := info.Endpoint.Address()
-			dataCenter := info.Endpoint.LocalDC()
+			endpoint := info.Endpoint
 			method := string(info.Method)
 			l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-				Str("address", address).
-				Bool("dataCenter", dataCenter).
+				Str("address", endpoint.Address()).
+				Bool("localDC", endpoint.LocalDC()).
+				Str("location", endpoint.Location()).
+				Time("lastUpdated", endpoint.LastUpdated()).
 				Str("method", method).
 				Msg("try to invoke")
 			start := time.Now()
@@ -183,15 +195,19 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 				if info.Error == nil {
 					l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 						Dur("latency", time.Since(start)).
-						Str("address", address).
-						Bool("dataCenter", dataCenter).
+						Str("address", endpoint.Address()).
+						Bool("localDC", endpoint.LocalDC()).
+						Str("location", endpoint.Location()).
+						Time("lastUpdated", endpoint.LastUpdated()).
 						Str("method", method).
 						Msg("invoked")
 				} else {
 					l.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
 						Dur("latency", time.Since(start)).
-						Str("address", address).
-						Bool("dataCenter", dataCenter).
+						Str("address", endpoint.Address()).
+						Bool("localDC", endpoint.LocalDC()).
+						Str("location", endpoint.Location()).
+						Time("lastUpdated", endpoint.LastUpdated()).
 						Str("method", method).
 						Err(info.Error).
 						Msg("invoke failed")
@@ -199,12 +215,13 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 			}
 		}
 		t.OnConnNewStream = func(info trace.ConnNewStreamStartInfo) func(trace.ConnNewStreamRecvInfo) func(trace.ConnNewStreamDoneInfo) {
-			address := info.Endpoint.Address()
-			dataCenter := info.Endpoint.LocalDC()
+			endpoint := info.Endpoint
 			method := string(info.Method)
 			l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-				Str("address", address).
-				Bool("dataCenter", dataCenter).
+				Str("address", endpoint.Address()).
+				Bool("localDC", endpoint.LocalDC()).
+				Str("location", endpoint.Location()).
+				Time("lastUpdated", endpoint.LastUpdated()).
 				Str("method", method).
 				Msg("try to streaming")
 			start := time.Now()
@@ -212,15 +229,19 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 				if info.Error == nil {
 					l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 						Dur("latency", time.Since(start)).
-						Str("address", address).
-						Bool("dataCenter", dataCenter).
+						Str("address", endpoint.Address()).
+						Bool("localDC", endpoint.LocalDC()).
+						Str("location", endpoint.Location()).
+						Time("lastUpdated", endpoint.LastUpdated()).
 						Str("method", method).
 						Msg("streaming intermediate receive")
 				} else {
 					l.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
 						Dur("latency", time.Since(start)).
-						Str("address", address).
-						Bool("dataCenter", dataCenter).
+						Str("address", endpoint.Address()).
+						Bool("localDC", endpoint.LocalDC()).
+						Str("location", endpoint.Location()).
+						Time("lastUpdated", endpoint.LastUpdated()).
 						Str("method", method).
 						Err(info.Error).
 						Msg("streaming intermediate receive failed")
@@ -229,15 +250,19 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 					if info.Error == nil {
 						l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 							Dur("latency", time.Since(start)).
-							Str("address", address).
-							Bool("dataCenter", dataCenter).
+							Str("address", endpoint.Address()).
+							Bool("localDC", endpoint.LocalDC()).
+							Str("location", endpoint.Location()).
+							Time("lastUpdated", endpoint.LastUpdated()).
 							Str("method", method).
 							Msg("streaming finished")
 					} else {
 						l.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
 							Dur("latency", time.Since(start)).
-							Str("address", address).
-							Bool("dataCenter", dataCenter).
+							Str("address", endpoint.Address()).
+							Bool("localDC", endpoint.LocalDC()).
+							Str("location", endpoint.Location()).
+							Time("lastUpdated", endpoint.LastUpdated()).
 							Str("method", method).
 							Err(info.Error).
 							Msg("streaming failed")
@@ -295,70 +320,82 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 			}
 		}
 		t.OnClusterInsert = func(info trace.ClusterInsertStartInfo) func(trace.ClusterInsertDoneInfo) {
-			address := info.Endpoint.Address()
-			dataCenter := info.Endpoint.LocalDC()
+			endpoint := info.Endpoint
 			l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-				Str("address", address).
-				Bool("local", dataCenter).
+				Str("address", endpoint.Address()).
+				Bool("localDC", endpoint.LocalDC()).
+				Str("location", endpoint.Location()).
+				Time("lastUpdated", endpoint.LastUpdated()).
 				Msg("inserting")
 			start := time.Now()
 			return func(info trace.ClusterInsertDoneInfo) {
 				l.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
 					Dur("latency", time.Since(start)).
-					Str("address", address).
-					Bool("local", dataCenter).
+					Str("address", endpoint.Address()).
+					Bool("localDC", endpoint.LocalDC()).
+					Str("location", endpoint.Location()).
+					Time("lastUpdated", endpoint.LastUpdated()).
 					Str("state", info.State.String()).
 					Msg("inserted")
 			}
 		}
 		t.OnClusterRemove = func(info trace.ClusterRemoveStartInfo) func(trace.ClusterRemoveDoneInfo) {
-			address := info.Endpoint.Address()
-			dataCenter := info.Endpoint.LocalDC()
+			endpoint := info.Endpoint
 			l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-				Str("address", address).
-				Bool("local", dataCenter).
+				Str("address", endpoint.Address()).
+				Bool("localDC", endpoint.LocalDC()).
+				Str("location", endpoint.Location()).
+				Time("lastUpdated", endpoint.LastUpdated()).
 				Msg("removing")
 			start := time.Now()
 			return func(info trace.ClusterRemoveDoneInfo) {
 				l.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
 					Dur("latency", time.Since(start)).
-					Str("address", address).
-					Bool("local", dataCenter).
+					Str("address", endpoint.Address()).
+					Bool("localDC", endpoint.LocalDC()).
+					Str("location", endpoint.Location()).
+					Time("lastUpdated", endpoint.LastUpdated()).
 					Str("state", info.State.String()).
 					Msg("removed")
 			}
 		}
 		t.OnClusterUpdate = func(info trace.ClusterUpdateStartInfo) func(trace.ClusterUpdateDoneInfo) {
-			address := info.Endpoint.Address()
-			dataCenter := info.Endpoint.LocalDC()
+			endpoint := info.Endpoint
 			l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-				Str("address", address).
-				Bool("local", dataCenter).
+				Str("address", endpoint.Address()).
+				Bool("localDC", endpoint.LocalDC()).
+				Str("location", endpoint.Location()).
+				Time("lastUpdated", endpoint.LastUpdated()).
 				Msg("updating")
 			start := time.Now()
 			return func(info trace.ClusterUpdateDoneInfo) {
 				l.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
 					Dur("latency", time.Since(start)).
-					Str("address", address).
-					Bool("local", dataCenter).
+					Str("address", endpoint.Address()).
+					Bool("localDC", endpoint.LocalDC()).
+					Str("location", endpoint.Location()).
+					Time("lastUpdated", endpoint.LastUpdated()).
 					Str("state", info.State.String()).
 					Msg("updated")
 			}
 		}
 		t.OnPessimizeNode = func(info trace.PessimizeNodeStartInfo) func(trace.PessimizeNodeDoneInfo) {
-			address := info.Endpoint.Address()
-			dataCenter := info.Endpoint.LocalDC()
+			endpoint := info.Endpoint
 			l.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
-				Str("address", address).
-				Bool("local", dataCenter).
+				Str("address", endpoint.Address()).
+				Bool("localDC", endpoint.LocalDC()).
+				Str("location", endpoint.Location()).
+				Time("lastUpdated", endpoint.LastUpdated()).
 				AnErr("cause", info.Cause).
 				Msg("pessimizing")
 			start := time.Now()
 			return func(info trace.PessimizeNodeDoneInfo) {
 				l.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
 					Dur("latency", time.Since(start)).
-					Str("address", address).
-					Bool("local", dataCenter).
+					Str("address", endpoint.Address()).
+					Bool("localDC", endpoint.LocalDC()).
+					Str("location", endpoint.Location()).
+					Time("lastUpdated", endpoint.LastUpdated()).
 					Str("state", info.State.String()).
 					Msg("pessimized")
 			}

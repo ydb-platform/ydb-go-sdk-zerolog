@@ -17,9 +17,13 @@ func Discovery(log *zerolog.Logger, details trace.Details) (t trace.Discovery) {
 			start := time.Now()
 			return func(info trace.DiscoverDoneInfo) {
 				if info.Error == nil {
+					endpoints := make([]string, 0, len(info.Endpoints))
+					for _, e := range info.Endpoints {
+						endpoints = append(endpoints, e.String())
+					}
 					log.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 						Dur("latency", time.Since(start)).
-						Strs("endpoints", info.Endpoints).
+						Strs("endpoints", endpoints).
 						Msg("discover finished")
 				} else {
 					log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
