@@ -139,25 +139,14 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 				}
 			}
 		}
-		t.OnConnRelease = func(info trace.ConnReleaseStartInfo) func(trace.ConnReleaseDoneInfo) {
-			endpoint := info.Endpoint
+		t.OnConnUsagesChange = func(info trace.ConnUsagesChangeInfo) {
 			l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-				Str("address", endpoint.Address()).
-				Bool("localDC", endpoint.LocalDC()).
-				Str("location", endpoint.Location()).
-				Time("lastUpdated", endpoint.LastUpdated()).
-				Msg("try to release conn")
-			start := time.Now()
-			return func(info trace.ConnReleaseDoneInfo) {
-				l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-					Dur("latency", time.Since(start)).
-					Str("address", endpoint.Address()).
-					Bool("localDC", endpoint.LocalDC()).
-					Str("location", endpoint.Location()).
-					Time("lastUpdated", endpoint.LastUpdated()).
-					Int("locks", info.Lock).
-					Msg("conn released")
-			}
+				Str("address", info.Endpoint.Address()).
+				Bool("localDC", info.Endpoint.LocalDC()).
+				Str("location", info.Endpoint.Location()).
+				Time("lastUpdated", info.Endpoint.LastUpdated()).
+				Int("usages", info.Usages).
+				Msg("conn usages changed")
 		}
 		t.OnConnStateChange = func(info trace.ConnStateChangeStartInfo) func(trace.ConnStateChangeDoneInfo) {
 			endpoint := info.Endpoint
