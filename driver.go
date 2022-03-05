@@ -169,6 +169,32 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 					Msg("conn state changed")
 			}
 		}
+		t.OnRepeaterWakeUp = func(info trace.RepeaterTickStartInfo) func(trace.RepeaterTickDoneInfo) {
+			name := info.Name
+			event := info.Event
+			l.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
+				Str("name", name).
+				Str("event", event).
+				Msg("repeater wake up")
+			start := time.Now()
+			return func(info trace.RepeaterTickDoneInfo) {
+				if info.Error == nil {
+					l.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
+						Dur("latency", time.Since(start)).
+						Str("name", name).
+						Str("event", event).
+						Msg("repeater wake up done")
+				} else {
+					l.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
+						Dur("latency", time.Since(start)).
+						Str("name", name).
+						Str("event", event).
+						Err(info.Error).
+						Msg("repeater wake up fail")
+				}
+
+			}
+		}
 		t.OnConnInvoke = func(info trace.ConnInvokeStartInfo) func(trace.ConnInvokeDoneInfo) {
 			endpoint := info.Endpoint
 			method := string(info.Method)

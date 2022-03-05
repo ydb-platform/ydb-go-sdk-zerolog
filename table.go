@@ -100,10 +100,16 @@ func Table(log *zerolog.Logger, details trace.Details) trace.Table {
 				start := time.Now()
 				return func(info trace.SessionNewDoneInfo) {
 					if info.Error == nil {
-						log.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
-							Dur("latency", time.Since(start)).
-							Str("id", info.Session.ID()).
-							Msg("created")
+						if info.Session != nil {
+							log.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
+								Dur("latency", time.Since(start)).
+								Str("id", info.Session.ID()).
+								Msg("created")
+						} else {
+							log.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
+								Dur("latency", time.Since(start)).
+								Msg("not created")
+						}
 					} else {
 						log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
 							Dur("latency", time.Since(start)).
