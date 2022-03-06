@@ -104,8 +104,37 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 			}
 		}
 	}
-	if details&trace.DriverCoreEvents != 0 {
-		scope := scope + ".core"
+	if details&trace.DriverRepeaterEvents != 0 {
+		scope := scope + ".repeater"
+		t.OnRepeaterWakeUp = func(info trace.RepeaterTickStartInfo) func(trace.RepeaterTickDoneInfo) {
+			name := info.Name
+			event := info.Event
+			l.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
+				Str("name", name).
+				Str("event", event).
+				Msg("repeater wake up")
+			start := time.Now()
+			return func(info trace.RepeaterTickDoneInfo) {
+				if info.Error == nil {
+					l.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
+						Dur("latency", time.Since(start)).
+						Str("name", name).
+						Str("event", event).
+						Msg("repeater wake up done")
+				} else {
+					l.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
+						Dur("latency", time.Since(start)).
+						Str("name", name).
+						Str("event", event).
+						Err(info.Error).
+						Msg("repeater wake up fail")
+				}
+
+			}
+		}
+	}
+	if details&trace.DriverConnEvents != 0 {
+		scope := scope + ".conn"
 		t.OnConnTake = func(info trace.ConnTakeStartInfo) func(trace.ConnTakeDoneInfo) {
 			endpoint := info.Endpoint
 			l.Debug().
@@ -167,32 +196,6 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 					Time("lastUpdated", endpoint.LastUpdated()).
 					Str("state after", info.State.String()).
 					Msg("conn state changed")
-			}
-		}
-		t.OnRepeaterWakeUp = func(info trace.RepeaterTickStartInfo) func(trace.RepeaterTickDoneInfo) {
-			name := info.Name
-			event := info.Event
-			l.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
-				Str("name", name).
-				Str("event", event).
-				Msg("repeater wake up")
-			start := time.Now()
-			return func(info trace.RepeaterTickDoneInfo) {
-				if info.Error == nil {
-					l.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
-						Dur("latency", time.Since(start)).
-						Str("name", name).
-						Str("event", event).
-						Msg("repeater wake up done")
-				} else {
-					l.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
-						Dur("latency", time.Since(start)).
-						Str("name", name).
-						Str("event", event).
-						Err(info.Error).
-						Msg("repeater wake up fail")
-				}
-
 			}
 		}
 		t.OnConnInvoke = func(info trace.ConnInvokeStartInfo) func(trace.ConnInvokeDoneInfo) {
@@ -282,6 +285,66 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 							Err(info.Error).
 							Msg("streaming failed")
 					}
+				}
+			}
+		}
+		t.OnConnPark = func(info trace.ConnParkStartInfo) func(trace.ConnParkDoneInfo) {
+			endpoint := info.Endpoint
+			l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+				Str("address", endpoint.Address()).
+				Bool("localDC", endpoint.LocalDC()).
+				Str("location", endpoint.Location()).
+				Time("lastUpdated", endpoint.LastUpdated()).
+				Msg("try to park")
+			start := time.Now()
+			return func(info trace.ConnParkDoneInfo) {
+				if info.Error == nil {
+					l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+						Dur("latency", time.Since(start)).
+						Str("address", endpoint.Address()).
+						Bool("localDC", endpoint.LocalDC()).
+						Str("location", endpoint.Location()).
+						Time("lastUpdated", endpoint.LastUpdated()).
+						Msg("parked")
+				} else {
+					l.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
+						Dur("latency", time.Since(start)).
+						Str("address", endpoint.Address()).
+						Bool("localDC", endpoint.LocalDC()).
+						Str("location", endpoint.Location()).
+						Time("lastUpdated", endpoint.LastUpdated()).
+						Err(info.Error).
+						Msg("park failed")
+				}
+			}
+		}
+		t.OnConnClose = func(info trace.ConnCloseStartInfo) func(trace.ConnCloseDoneInfo) {
+			endpoint := info.Endpoint
+			l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+				Str("address", endpoint.Address()).
+				Bool("localDC", endpoint.LocalDC()).
+				Str("location", endpoint.Location()).
+				Time("lastUpdated", endpoint.LastUpdated()).
+				Msg("try to close")
+			start := time.Now()
+			return func(info trace.ConnCloseDoneInfo) {
+				if info.Error == nil {
+					l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+						Dur("latency", time.Since(start)).
+						Str("address", endpoint.Address()).
+						Bool("localDC", endpoint.LocalDC()).
+						Str("location", endpoint.Location()).
+						Time("lastUpdated", endpoint.LastUpdated()).
+						Msg("closed")
+				} else {
+					l.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
+						Dur("latency", time.Since(start)).
+						Str("address", endpoint.Address()).
+						Bool("localDC", endpoint.LocalDC()).
+						Str("location", endpoint.Location()).
+						Time("lastUpdated", endpoint.LastUpdated()).
+						Err(info.Error).
+						Msg("close failed")
 				}
 			}
 		}
