@@ -12,6 +12,37 @@ import (
 func Table(log *zerolog.Logger, details trace.Details) trace.Table {
 	scope := "ydb.table"
 	t := trace.Table{}
+	if details&trace.TableEvents != 0 {
+		t.OnInit = func(info trace.TableInitStartInfo) func(trace.TableInitDoneInfo) {
+			log.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
+				Msg("initializing")
+			start := time.Now()
+			return func(info trace.TableInitDoneInfo) {
+				log.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					Dur("latency", time.Since(start)).
+					Int("minSize", info.KeepAliveMinSize).
+					Int("maxSize", info.Limit).
+					Msg("initialized")
+			}
+		}
+		t.OnClose = func(info trace.TableCloseStartInfo) func(trace.TableCloseDoneInfo) {
+			log.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
+				Msg("closing")
+			start := time.Now()
+			return func(info trace.TableCloseDoneInfo) {
+				if info.Error == nil {
+					log.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
+						Dur("latency", time.Since(start)).
+						Msg("closed")
+				} else {
+					log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
+						Dur("latency", time.Since(start)).
+						Err(info.Error).
+						Msg("close failed")
+				}
+			}
+		}
+	}
 	if details&trace.TablePoolRetryEvents != 0 {
 		scope := scope + ".retry"
 		do := scope + ".do"
@@ -446,37 +477,6 @@ func Table(log *zerolog.Logger, details trace.Details) trace.Table {
 	}
 	if details&trace.TablePoolEvents != 0 {
 		scope := scope + ".pool"
-		if details&trace.TablePoolLifeCycleEvents != 0 {
-			t.OnPoolInit = func(info trace.PoolInitStartInfo) func(trace.PoolInitDoneInfo) {
-				log.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
-					Msg("initializing")
-				start := time.Now()
-				return func(info trace.PoolInitDoneInfo) {
-					log.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
-						Dur("latency", time.Since(start)).
-						Int("minSize", info.KeepAliveMinSize).
-						Int("maxSize", info.Limit).
-						Msg("initialized")
-				}
-			}
-			t.OnPoolClose = func(info trace.PoolCloseStartInfo) func(trace.PoolCloseDoneInfo) {
-				log.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
-					Msg("closing")
-				start := time.Now()
-				return func(info trace.PoolCloseDoneInfo) {
-					if info.Error == nil {
-						log.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
-							Dur("latency", time.Since(start)).
-							Msg("closed")
-					} else {
-						log.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
-							Dur("latency", time.Since(start)).
-							Err(info.Error).
-							Msg("close failed")
-					}
-				}
-			}
-		}
 		if details&trace.TablePoolSessionLifeCycleEvents != 0 {
 			scope := scope + ".session"
 			t.OnPoolSessionNew = func(info trace.PoolSessionNewStartInfo) func(trace.PoolSessionNewDoneInfo) {
