@@ -51,23 +51,23 @@ func Table(log *zerolog.Logger, details trace.Details) trace.Table {
 			start := time.Now()
 			return func(info trace.TableCreateSessionIntermediateInfo) func(trace.TableCreateSessionDoneInfo) {
 				if info.Error == nil {
-					log.Debug().Caller().Timestamp().Str("scope", do).Str("version", version).
+					log.Debug().Caller().Timestamp().Str("scope", createSession).Str("version", version).
 						Dur("latency", time.Since(start)).
 						Msg("intermediate")
 				} else {
-					log.Warn().Caller().Timestamp().Str("scope", do).Str("version", version).
+					log.Warn().Caller().Timestamp().Str("scope", createSession).Str("version", version).
 						Dur("latency", time.Since(start)).
 						Err(info.Error).
 						Msg("intermediate failed")
 				}
 				return func(info trace.TableCreateSessionDoneInfo) {
 					if info.Error == nil {
-						log.Debug().Caller().Timestamp().Str("scope", do).Str("version", version).
+						log.Debug().Caller().Timestamp().Str("scope", createSession).Str("version", version).
 							Dur("latency", time.Since(start)).
 							Int("attempts", info.Attempts).
 							Msg("finish")
 					} else {
-						log.Error().Caller().Timestamp().Str("scope", do).Str("version", version).
+						log.Error().Caller().Timestamp().Str("scope", createSession).Str("version", version).
 							Dur("latency", time.Since(start)).
 							Int("attempts", info.Attempts).
 							Str("id", info.Session.ID()).
