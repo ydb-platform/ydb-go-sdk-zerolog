@@ -102,7 +102,7 @@ func Table(l *zerolog.Logger, details trace.Details) trace.Table {
 						Bool("idempotent", idempotent).
 						Bool("retryable", m.MustRetry(idempotent)).
 						Bool("deleteSession", m.MustDeleteSession()).
-						Int32("code", m.StatusCode()).
+						Int64("code", m.StatusCode()).
 						Err(info.Error).
 						Msg("intermediate failed")
 				}
@@ -124,7 +124,7 @@ func Table(l *zerolog.Logger, details trace.Details) trace.Table {
 							Bool("idempotent", idempotent).
 							Bool("retryable", m.MustRetry(idempotent)).
 							Bool("deleteSession", m.MustDeleteSession()).
-							Int32("code", m.StatusCode()).
+							Int64("code", m.StatusCode()).
 							Err(info.Error).
 							Msg("finish")
 					}
@@ -154,7 +154,7 @@ func Table(l *zerolog.Logger, details trace.Details) trace.Table {
 						Bool("idempotent", idempotent).
 						Bool("retryable", m.MustRetry(idempotent)).
 						Bool("deleteSession", m.MustDeleteSession()).
-						Int32("code", m.StatusCode()).
+						Int64("code", m.StatusCode()).
 						Err(info.Error).
 						Msg("intermediate failed")
 				}
@@ -176,7 +176,7 @@ func Table(l *zerolog.Logger, details trace.Details) trace.Table {
 							Bool("idempotent", idempotent).
 							Bool("retryable", m.MustRetry(idempotent)).
 							Bool("deleteSession", m.MustDeleteSession()).
-							Int32("code", m.StatusCode()).
+							Int64("code", m.StatusCode()).
 							Int("attempts", info.Attempts).
 							Err(info.Error).
 							Msg("finish")

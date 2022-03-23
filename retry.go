@@ -34,7 +34,7 @@ func Retry(l *zerolog.Logger, details trace.Details) (t trace.Retry) {
 						Bool("idempotent", idempotent).
 						Bool("retryable", m.MustRetry(idempotent)).
 						Bool("deleteSession", m.MustDeleteSession()).
-						Int32("code", m.StatusCode()).
+						Int64("code", m.StatusCode()).
 						Err(info.Error).
 						Msg("intermediate failed")
 				}
@@ -56,7 +56,7 @@ func Retry(l *zerolog.Logger, details trace.Details) (t trace.Retry) {
 							Bool("idempotent", idempotent).
 							Bool("retryable", m.MustRetry(idempotent)).
 							Bool("deleteSession", m.MustDeleteSession()).
-							Int32("code", m.StatusCode()).
+							Int64("code", m.StatusCode()).
 							Err(info.Error).
 							Msg("finish")
 					}
