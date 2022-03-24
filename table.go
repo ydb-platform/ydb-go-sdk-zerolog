@@ -1,6 +1,7 @@
 package zerolog
 
 import (
+	"github.com/ydb-platform/ydb-go-sdk/v3"
 	"github.com/ydb-platform/ydb-go-sdk/v3/retry"
 	"time"
 
@@ -92,12 +93,12 @@ func Table(l *zerolog.Logger, details trace.Details) trace.Table {
 						Bool("idempotent", idempotent).
 						Msg("intermediate")
 				} else {
-					m := retry.Check(info.Error)
-					log := l.Warn()
-					if m.StatusCode() < 0 {
-						log = l.Debug()
+					f := l.Warn()
+					if !ydb.IsYdbError(info.Error) {
+						f = l.Debug()
 					}
-					log.Caller().Timestamp().Str("scope", do).Str("version", version).
+					m := retry.Check(info.Error)
+					f.Caller().Timestamp().Str("scope", do).Str("version", version).
 						Dur("latency", time.Since(start)).
 						Bool("idempotent", idempotent).
 						Bool("retryable", m.MustRetry(idempotent)).
@@ -114,12 +115,12 @@ func Table(l *zerolog.Logger, details trace.Details) trace.Table {
 							Int("attempts", info.Attempts).
 							Msg("finish")
 					} else {
-						m := retry.Check(info.Error)
-						log := l.Error()
-						if m.StatusCode() < 0 {
-							log = l.Warn()
+						f := l.Error()
+						if !ydb.IsYdbError(info.Error) {
+							f = l.Debug()
 						}
-						log.Caller().Timestamp().Str("scope", do).Str("version", version).
+						m := retry.Check(info.Error)
+						f.Caller().Timestamp().Str("scope", do).Str("version", version).
 							Dur("latency", time.Since(start)).
 							Bool("idempotent", idempotent).
 							Bool("retryable", m.MustRetry(idempotent)).
@@ -144,12 +145,12 @@ func Table(l *zerolog.Logger, details trace.Details) trace.Table {
 						Bool("idempotent", idempotent).
 						Msg("intermediate")
 				} else {
-					m := retry.Check(info.Error)
-					log := l.Error()
-					if m.StatusCode() < 0 {
-						log = l.Debug()
+					f := l.Warn()
+					if !ydb.IsYdbError(info.Error) {
+						f = l.Debug()
 					}
-					log.Caller().Timestamp().Str("scope", doTx).Str("version", version).
+					m := retry.Check(info.Error)
+					f.Caller().Timestamp().Str("scope", doTx).Str("version", version).
 						Dur("latency", time.Since(start)).
 						Bool("idempotent", idempotent).
 						Bool("retryable", m.MustRetry(idempotent)).
@@ -166,12 +167,12 @@ func Table(l *zerolog.Logger, details trace.Details) trace.Table {
 							Int("attempts", info.Attempts).
 							Msg("finish")
 					} else {
-						m := retry.Check(info.Error)
-						log := l.Error()
-						if m.StatusCode() < 0 {
-							log = l.Warn()
+						f := l.Error()
+						if !ydb.IsYdbError(info.Error) {
+							f = l.Debug()
 						}
-						log.Caller().Timestamp().Str("scope", doTx).Str("version", version).
+						m := retry.Check(info.Error)
+						f.Caller().Timestamp().Str("scope", doTx).Str("version", version).
 							Dur("latency", time.Since(start)).
 							Bool("idempotent", idempotent).
 							Bool("retryable", m.MustRetry(idempotent)).

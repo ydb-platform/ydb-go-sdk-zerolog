@@ -437,26 +437,6 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 					Msg("removed")
 			}
 		}
-		t.OnClusterUpdate = func(info trace.DriverClusterUpdateStartInfo) func(trace.DriverClusterUpdateDoneInfo) {
-			endpoint := info.Endpoint
-			l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-				Str("address", endpoint.Address()).
-				Bool("localDC", endpoint.LocalDC()).
-				Str("location", endpoint.Location()).
-				Time("lastUpdated", endpoint.LastUpdated()).
-				Msg("updating")
-			start := time.Now()
-			return func(info trace.DriverClusterUpdateDoneInfo) {
-				l.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
-					Dur("latency", time.Since(start)).
-					Str("address", endpoint.Address()).
-					Bool("localDC", endpoint.LocalDC()).
-					Str("location", endpoint.Location()).
-					Time("lastUpdated", endpoint.LastUpdated()).
-					Str("state", info.State.String()).
-					Msg("updated")
-			}
-		}
 		t.OnPessimizeNode = func(info trace.DriverPessimizeNodeStartInfo) func(trace.DriverPessimizeNodeDoneInfo) {
 			endpoint := info.Endpoint
 			l.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
