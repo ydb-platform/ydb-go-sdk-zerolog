@@ -20,9 +20,9 @@ func main() {
 	// init your zap.Logger
 	log = zerolog.New(os.Stdout).With().Timestamp().Logger()
 	
-    db, err := ydb.New(
+    db, err := ydb.Open(
         context.Background(),
-		ydb.MustConnectionString(connection),
+		os.Getenv("YDB_CONNECTION_STRING"),
 		ydbZerolog.WithTraces(
 			&log,
 			ydbZerolog.DetailsAll,
