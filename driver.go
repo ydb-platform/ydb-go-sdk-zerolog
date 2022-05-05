@@ -106,7 +106,7 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 	}
 	if details&trace.DriverRepeaterEvents != 0 {
 		scope := scope + ".repeater"
-		t.OnRepeaterWakeUp = func(info trace.DriverRepeaterTickStartInfo) func(trace.DriverRepeaterTickDoneInfo) {
+		t.OnRepeaterWakeUp = func(info trace.DriverRepeaterWakeUpStartInfo) func(trace.DriverRepeaterWakeUpDoneInfo) {
 			name := info.Name
 			event := info.Event
 			l.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
@@ -114,7 +114,7 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 				Str("event", event).
 				Msg("repeater wake up")
 			start := time.Now()
-			return func(info trace.DriverRepeaterTickDoneInfo) {
+			return func(info trace.DriverRepeaterWakeUpDoneInfo) {
 				if info.Error == nil {
 					l.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
 						Dur("latency", time.Since(start)).
