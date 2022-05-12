@@ -168,15 +168,6 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 				}
 			}
 		}
-		t.OnConnUsagesChange = func(info trace.DriverConnUsagesChangeInfo) {
-			l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-				Str("address", info.Endpoint.Address()).
-				Bool("localDC", info.Endpoint.LocalDC()).
-				Str("location", info.Endpoint.Location()).
-				Time("lastUpdated", info.Endpoint.LastUpdated()).
-				Int("usages", info.Usages).
-				Msg("conn usages changed")
-		}
 		t.OnConnStateChange = func(info trace.DriverConnStateChangeStartInfo) func(trace.DriverConnStateChangeDoneInfo) {
 			endpoint := info.Endpoint
 			l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
@@ -348,6 +339,47 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 				}
 			}
 		}
+		t.OnConnBan = func(info trace.DriverConnBanStartInfo) func(trace.DriverConnBanDoneInfo) {
+			endpoint := info.Endpoint
+			l.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
+				Str("address", endpoint.Address()).
+				Bool("localDC", endpoint.LocalDC()).
+				Str("location", endpoint.Location()).
+				Time("lastUpdated", endpoint.LastUpdated()).
+				AnErr("cause", info.Cause).
+				Msg("ban start")
+			start := time.Now()
+			return func(info trace.DriverConnBanDoneInfo) {
+				l.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					Dur("latency", time.Since(start)).
+					Str("address", endpoint.Address()).
+					Bool("localDC", endpoint.LocalDC()).
+					Str("location", endpoint.Location()).
+					Time("lastUpdated", endpoint.LastUpdated()).
+					Str("state", info.State.String()).
+					Msg("ban done")
+			}
+		}
+		t.OnConnAllow = func(info trace.DriverConnAllowStartInfo) func(doneInfo trace.DriverConnAllowDoneInfo) {
+			endpoint := info.Endpoint
+			l.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
+				Str("address", endpoint.Address()).
+				Bool("localDC", endpoint.LocalDC()).
+				Str("location", endpoint.Location()).
+				Time("lastUpdated", endpoint.LastUpdated()).
+				Msg("allow start")
+			start := time.Now()
+			return func(info trace.DriverConnAllowDoneInfo) {
+				l.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					Dur("latency", time.Since(start)).
+					Str("address", endpoint.Address()).
+					Bool("localDC", endpoint.LocalDC()).
+					Str("location", endpoint.Location()).
+					Time("lastUpdated", endpoint.LastUpdated()).
+					Str("state", info.State.String()).
+					Msg("allow done")
+			}
+		}
 	}
 	if details&trace.DriverClusterEvents != 0 {
 		scope := scope + ".cluster"
@@ -395,67 +427,6 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 						Err(info.Error).
 						Msg("conn get failed")
 				}
-			}
-		}
-		t.OnClusterInsert = func(info trace.DriverClusterInsertStartInfo) func(trace.DriverClusterInsertDoneInfo) {
-			endpoint := info.Endpoint
-			l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-				Str("address", endpoint.Address()).
-				Bool("localDC", endpoint.LocalDC()).
-				Str("location", endpoint.Location()).
-				Time("lastUpdated", endpoint.LastUpdated()).
-				Msg("inserting")
-			start := time.Now()
-			return func(info trace.DriverClusterInsertDoneInfo) {
-				l.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
-					Dur("latency", time.Since(start)).
-					Str("address", endpoint.Address()).
-					Bool("localDC", endpoint.LocalDC()).
-					Str("location", endpoint.Location()).
-					Time("lastUpdated", endpoint.LastUpdated()).
-					Str("state", info.State.String()).
-					Msg("inserted")
-			}
-		}
-		t.OnClusterRemove = func(info trace.DriverClusterRemoveStartInfo) func(trace.DriverClusterRemoveDoneInfo) {
-			endpoint := info.Endpoint
-			l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-				Str("address", endpoint.Address()).
-				Bool("localDC", endpoint.LocalDC()).
-				Str("location", endpoint.Location()).
-				Time("lastUpdated", endpoint.LastUpdated()).
-				Msg("removing")
-			start := time.Now()
-			return func(info trace.DriverClusterRemoveDoneInfo) {
-				l.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
-					Dur("latency", time.Since(start)).
-					Str("address", endpoint.Address()).
-					Bool("localDC", endpoint.LocalDC()).
-					Str("location", endpoint.Location()).
-					Time("lastUpdated", endpoint.LastUpdated()).
-					Str("state", info.State.String()).
-					Msg("removed")
-			}
-		}
-		t.OnPessimizeNode = func(info trace.DriverPessimizeNodeStartInfo) func(trace.DriverPessimizeNodeDoneInfo) {
-			endpoint := info.Endpoint
-			l.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
-				Str("address", endpoint.Address()).
-				Bool("localDC", endpoint.LocalDC()).
-				Str("location", endpoint.Location()).
-				Time("lastUpdated", endpoint.LastUpdated()).
-				AnErr("cause", info.Cause).
-				Msg("pessimizing")
-			start := time.Now()
-			return func(info trace.DriverPessimizeNodeDoneInfo) {
-				l.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
-					Dur("latency", time.Since(start)).
-					Str("address", endpoint.Address()).
-					Bool("localDC", endpoint.LocalDC()).
-					Str("location", endpoint.Location()).
-					Time("lastUpdated", endpoint.LastUpdated()).
-					Str("state", info.State.String()).
-					Msg("pessimized")
 			}
 		}
 	}
