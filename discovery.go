@@ -13,7 +13,7 @@ func Discovery(log *zerolog.Logger, details trace.Details) (t trace.Discovery) {
 		scope := "ydb.discovery"
 		t.OnDiscover = func(info trace.DiscoveryDiscoverStartInfo) func(trace.DiscoveryDiscoverDoneInfo) {
 			address := info.Address
-			log.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
+			log.Info().Caller().Timestamp().Str("scope", scope).
 				Str("address", address).
 				Msg("try to discover")
 			start := time.Now()
@@ -23,7 +23,7 @@ func Discovery(log *zerolog.Logger, details trace.Details) (t trace.Discovery) {
 					for _, e := range info.Endpoints {
 						endpoints = append(endpoints, e.String())
 					}
-					log.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					log.Info().Caller().Timestamp().Str("scope", scope).
 						Str("address", address).
 						Dur("latency", time.Since(start)).
 						Strs("endpoints", endpoints).

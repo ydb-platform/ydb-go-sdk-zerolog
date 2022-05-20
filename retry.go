@@ -14,13 +14,13 @@ func Retry(l *zerolog.Logger, details trace.Details) (t trace.Retry) {
 		scope := "ydb.retry"
 		t.OnRetry = func(info trace.RetryLoopStartInfo) func(trace.RetryLoopIntermediateInfo) func(trace.RetryLoopDoneInfo) {
 			idempotent := info.Idempotent
-			l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+			l.Debug().Caller().Timestamp().Str("scope", scope).
 				Bool("idempotent", idempotent).
 				Msg("init")
 			start := time.Now()
 			return func(info trace.RetryLoopIntermediateInfo) func(trace.RetryLoopDoneInfo) {
 				if info.Error == nil {
-					l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					l.Debug().Caller().Timestamp().Str("scope", scope).
 						Dur("latency", time.Since(start)).
 						Bool("idempotent", idempotent).
 						Msg("intermediate")
@@ -41,7 +41,7 @@ func Retry(l *zerolog.Logger, details trace.Details) (t trace.Retry) {
 				}
 				return func(info trace.RetryLoopDoneInfo) {
 					if info.Error == nil {
-						l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+						l.Debug().Caller().Timestamp().Str("scope", scope).
 							Dur("latency", time.Since(start)).
 							Bool("idempotent", idempotent).
 							Int("attempts", info.Attempts).

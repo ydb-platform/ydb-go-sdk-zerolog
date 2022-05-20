@@ -17,13 +17,13 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 		scope := scope + ".net"
 		t.OnNetRead = func(info trace.DriverNetReadStartInfo) func(trace.DriverNetReadDoneInfo) {
 			address := info.Address
-			l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+			l.Debug().Caller().Timestamp().Str("scope", scope).
 				Str("address", address).
 				Msg("try to read")
 			start := time.Now()
 			return func(info trace.DriverNetReadDoneInfo) {
 				if info.Error == nil {
-					l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					l.Debug().Caller().Timestamp().Str("scope", scope).
 						Dur("latency", time.Since(start)).
 						Str("address", address).
 						Int("received", info.Received).
@@ -40,13 +40,13 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 		}
 		t.OnNetWrite = func(info trace.DriverNetWriteStartInfo) func(trace.DriverNetWriteDoneInfo) {
 			address := info.Address
-			l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+			l.Debug().Caller().Timestamp().Str("scope", scope).
 				Str("address", address).
 				Msg("try to write")
 			start := time.Now()
 			return func(info trace.DriverNetWriteDoneInfo) {
 				if info.Error == nil {
-					l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					l.Debug().Caller().Timestamp().Str("scope", scope).
 						Dur("latency", time.Since(start)).
 						Str("address", address).
 						Int("sent", info.Sent).
@@ -63,13 +63,13 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 		}
 		t.OnNetDial = func(info trace.DriverNetDialStartInfo) func(trace.DriverNetDialDoneInfo) {
 			address := info.Address
-			l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+			l.Debug().Caller().Timestamp().Str("scope", scope).
 				Str("address", address).
 				Msg("try to dial")
 			start := time.Now()
 			return func(info trace.DriverNetDialDoneInfo) {
 				if info.Error == nil {
-					l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					l.Debug().Caller().Timestamp().Str("scope", scope).
 						Dur("latency", time.Since(start)).
 						Str("address", address).
 						Msg("dialed")
@@ -84,14 +84,14 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 		}
 		t.OnNetClose = func(info trace.DriverNetCloseStartInfo) func(trace.DriverNetCloseDoneInfo) {
 			address := info.Address
-			l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+			l.Debug().Caller().Timestamp().Str("scope", scope).
 				Str("address", address).
 				Msg("try to close")
 			start := time.Now()
 			return func(info trace.DriverNetCloseDoneInfo) {
 				if info.Error == nil {
-					l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-						Dur("latency", time.Since(start)).Str("version", version).
+					l.Debug().Caller().Timestamp().Str("scope", scope).
+						Dur("latency", time.Since(start)).
 						Str("address", address).
 						Msg("closed")
 				} else {
@@ -109,14 +109,14 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 		t.OnRepeaterWakeUp = func(info trace.DriverRepeaterWakeUpStartInfo) func(trace.DriverRepeaterWakeUpDoneInfo) {
 			name := info.Name
 			event := info.Event
-			l.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
+			l.Info().Caller().Timestamp().Str("scope", scope).
 				Str("name", name).
 				Str("event", event).
 				Msg("repeater wake up")
 			start := time.Now()
 			return func(info trace.DriverRepeaterWakeUpDoneInfo) {
 				if info.Error == nil {
-					l.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					l.Info().Caller().Timestamp().Str("scope", scope).
 						Dur("latency", time.Since(start)).
 						Str("name", name).
 						Str("event", event).
@@ -140,7 +140,7 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 			l.Debug().
 				Caller().
 				Timestamp().
-				Str("scope", scope).Str("version", version).
+				Str("scope", scope).
 				Str("address", endpoint.Address()).
 				Bool("localDC", endpoint.LocalDC()).
 				Str("location", endpoint.Location()).
@@ -149,7 +149,7 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 			start := time.Now()
 			return func(info trace.DriverConnTakeDoneInfo) {
 				if info.Error == nil {
-					l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					l.Debug().Caller().Timestamp().Str("scope", scope).
 						Dur("latency", time.Since(start)).
 						Str("address", endpoint.Address()).
 						Bool("localDC", endpoint.LocalDC()).
@@ -170,7 +170,7 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 		}
 		t.OnConnStateChange = func(info trace.DriverConnStateChangeStartInfo) func(trace.DriverConnStateChangeDoneInfo) {
 			endpoint := info.Endpoint
-			l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+			l.Debug().Caller().Timestamp().Str("scope", scope).
 				Str("address", endpoint.Address()).
 				Bool("localDC", endpoint.LocalDC()).
 				Str("location", endpoint.Location()).
@@ -179,7 +179,7 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 				Msg("conn state change")
 			start := time.Now()
 			return func(info trace.DriverConnStateChangeDoneInfo) {
-				l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+				l.Info().Caller().Timestamp().Str("scope", scope).
 					Dur("latency", time.Since(start)).
 					Str("address", endpoint.Address()).
 					Bool("localDC", endpoint.LocalDC()).
@@ -192,7 +192,7 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 		t.OnConnInvoke = func(info trace.DriverConnInvokeStartInfo) func(trace.DriverConnInvokeDoneInfo) {
 			endpoint := info.Endpoint
 			method := string(info.Method)
-			l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+			l.Debug().Caller().Timestamp().Str("scope", scope).
 				Str("address", endpoint.Address()).
 				Bool("localDC", endpoint.LocalDC()).
 				Str("location", endpoint.Location()).
@@ -202,7 +202,7 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 			start := time.Now()
 			return func(info trace.DriverConnInvokeDoneInfo) {
 				if info.Error == nil {
-					l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					l.Debug().Caller().Timestamp().Str("scope", scope).
 						Dur("latency", time.Since(start)).
 						Str("address", endpoint.Address()).
 						Bool("localDC", endpoint.LocalDC()).
@@ -226,7 +226,7 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 		t.OnConnNewStream = func(info trace.DriverConnNewStreamStartInfo) func(trace.DriverConnNewStreamRecvInfo) func(trace.DriverConnNewStreamDoneInfo) {
 			endpoint := info.Endpoint
 			method := string(info.Method)
-			l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+			l.Debug().Caller().Timestamp().Str("scope", scope).
 				Str("address", endpoint.Address()).
 				Bool("localDC", endpoint.LocalDC()).
 				Str("location", endpoint.Location()).
@@ -236,7 +236,7 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 			start := time.Now()
 			return func(info trace.DriverConnNewStreamRecvInfo) func(trace.DriverConnNewStreamDoneInfo) {
 				if info.Error == nil {
-					l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					l.Debug().Caller().Timestamp().Str("scope", scope).
 						Dur("latency", time.Since(start)).
 						Str("address", endpoint.Address()).
 						Bool("localDC", endpoint.LocalDC()).
@@ -257,7 +257,7 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 				}
 				return func(info trace.DriverConnNewStreamDoneInfo) {
 					if info.Error == nil {
-						l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+						l.Debug().Caller().Timestamp().Str("scope", scope).
 							Dur("latency", time.Since(start)).
 							Str("address", endpoint.Address()).
 							Bool("localDC", endpoint.LocalDC()).
@@ -281,7 +281,7 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 		}
 		t.OnConnPark = func(info trace.DriverConnParkStartInfo) func(trace.DriverConnParkDoneInfo) {
 			endpoint := info.Endpoint
-			l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+			l.Debug().Caller().Timestamp().Str("scope", scope).
 				Str("address", endpoint.Address()).
 				Bool("localDC", endpoint.LocalDC()).
 				Str("location", endpoint.Location()).
@@ -290,7 +290,7 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 			start := time.Now()
 			return func(info trace.DriverConnParkDoneInfo) {
 				if info.Error == nil {
-					l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					l.Debug().Caller().Timestamp().Str("scope", scope).
 						Dur("latency", time.Since(start)).
 						Str("address", endpoint.Address()).
 						Bool("localDC", endpoint.LocalDC()).
@@ -311,7 +311,7 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 		}
 		t.OnConnClose = func(info trace.DriverConnCloseStartInfo) func(trace.DriverConnCloseDoneInfo) {
 			endpoint := info.Endpoint
-			l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+			l.Debug().Caller().Timestamp().Str("scope", scope).
 				Str("address", endpoint.Address()).
 				Bool("localDC", endpoint.LocalDC()).
 				Str("location", endpoint.Location()).
@@ -320,7 +320,7 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 			start := time.Now()
 			return func(info trace.DriverConnCloseDoneInfo) {
 				if info.Error == nil {
-					l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					l.Debug().Caller().Timestamp().Str("scope", scope).
 						Dur("latency", time.Since(start)).
 						Str("address", endpoint.Address()).
 						Bool("localDC", endpoint.LocalDC()).
@@ -341,7 +341,7 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 		}
 		t.OnConnBan = func(info trace.DriverConnBanStartInfo) func(trace.DriverConnBanDoneInfo) {
 			endpoint := info.Endpoint
-			l.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
+			l.Debug().Caller().Timestamp().Str("scope", scope).
 				Str("address", endpoint.Address()).
 				Bool("localDC", endpoint.LocalDC()).
 				Str("location", endpoint.Location()).
@@ -362,7 +362,7 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 		}
 		t.OnConnAllow = func(info trace.DriverConnAllowStartInfo) func(doneInfo trace.DriverConnAllowDoneInfo) {
 			endpoint := info.Endpoint
-			l.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
+			l.Debug().Caller().Timestamp().Str("scope", scope).
 				Str("address", endpoint.Address()).
 				Bool("localDC", endpoint.LocalDC()).
 				Str("location", endpoint.Location()).
@@ -370,7 +370,7 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 				Msg("allow start")
 			start := time.Now()
 			return func(info trace.DriverConnAllowDoneInfo) {
-				l.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
+				l.Debug().Caller().Timestamp().Str("scope", scope).
 					Dur("latency", time.Since(start)).
 					Str("address", endpoint.Address()).
 					Bool("localDC", endpoint.LocalDC()).
@@ -381,25 +381,25 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 			}
 		}
 	}
-	if details&trace.DriverClusterEvents != 0 {
+	if details&trace.DriverBalancerEvents != 0 {
 		scope := scope + ".cluster"
-		t.OnClusterInit = func(info trace.DriverClusterInitStartInfo) func(trace.DriverClusterInitDoneInfo) {
-			l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+		t.OnBalancerInit = func(info trace.DriverBalancerInitStartInfo) func(trace.DriverBalancerInitDoneInfo) {
+			l.Debug().Caller().Timestamp().Str("scope", scope).
 				Msg("init start")
 			start := time.Now()
-			return func(info trace.DriverClusterInitDoneInfo) {
-				l.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
+			return func(info trace.DriverBalancerInitDoneInfo) {
+				l.Info().Caller().Timestamp().Str("scope", scope).
 					Dur("latency", time.Since(start)).
 					Msg("init done")
 			}
 		}
-		t.OnClusterClose = func(info trace.DriverClusterCloseStartInfo) func(trace.DriverClusterCloseDoneInfo) {
-			l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+		t.OnBalancerClose = func(info trace.DriverBalancerCloseStartInfo) func(trace.DriverBalancerCloseDoneInfo) {
+			l.Debug().Caller().Timestamp().Str("scope", scope).
 				Msg("close start")
 			start := time.Now()
-			return func(info trace.DriverClusterCloseDoneInfo) {
+			return func(info trace.DriverBalancerCloseDoneInfo) {
 				if info.Error == nil {
-					l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
+					l.Debug().Caller().Timestamp().Str("scope", scope).
 						Dur("latency", time.Since(start)).
 						Msg("close done")
 				} else {
@@ -410,22 +410,45 @@ func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
 				}
 			}
 		}
-		t.OnClusterGet = func(info trace.DriverClusterGetStartInfo) func(trace.DriverClusterGetDoneInfo) {
-			l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-				Msg("try to get conn")
+		t.OnBalancerChooseEndpoint = func(info trace.DriverBalancerChooseEndpointStartInfo) func(trace.DriverBalancerChooseEndpointDoneInfo) {
+			l.Debug().Caller().Timestamp().Str("scope", scope).
+				Msg("try to choose endpoint")
 			start := time.Now()
-			return func(info trace.DriverClusterGetDoneInfo) {
+			return func(info trace.DriverBalancerChooseEndpointDoneInfo) {
 				if info.Error == nil {
 					l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
 						Dur("latency", time.Since(start)).
 						Str("address", info.Endpoint.Address()).
 						Bool("local", info.Endpoint.LocalDC()).
-						Msg("conn got")
+						Msg("choose endpoint ok")
 				} else {
 					l.Warn().Caller().Timestamp().Str("scope", scope).Str("version", version).
 						Dur("latency", time.Since(start)).
 						Err(info.Error).
-						Msg("conn get failed")
+						Msg("choose endpoint failed")
+				}
+			}
+		}
+		t.OnBalancerUpdate = func(info trace.DriverBalancerUpdateStartInfo) func(trace.DriverBalancerUpdateDoneInfo) {
+			l.Debug().Caller().Timestamp().Str("scope", scope).
+				Bool("needLocalDC", info.NeedLocalDC).
+				Msg("try to update balancer")
+			start := time.Now()
+			return func(info trace.DriverBalancerUpdateDoneInfo) {
+				if info.Error == nil {
+					endpoints := make([]string, 0, len(info.Endpoints))
+					for _, e := range info.Endpoints {
+						endpoints = append(endpoints, e.String())
+					}
+					l.Info().Caller().Timestamp().Str("scope", scope).
+						Str("local", info.LocalDC).
+						Dur("latency", time.Since(start)).
+						Strs("endpoints", endpoints).
+						Msg("discover finished")
+				} else {
+					l.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
+						Dur("latency", time.Since(start)).
+						Msg("discover failed")
 				}
 			}
 		}
