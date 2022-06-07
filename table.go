@@ -577,7 +577,7 @@ func Table(l *zerolog.Logger, details trace.Details) trace.Table {
 						Msg("closed")
 				}
 			}
-			t.OnPoolStateChange = func(info trace.TablePooStateChangeInfo) {
+			t.OnPoolStateChange = func(info trace.TablePoolStateChangeInfo) {
 				l.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
 					Int("size", info.Size).
 					Str("event", info.Event).
