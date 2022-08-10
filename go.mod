@@ -4,5 +4,5 @@ go 1.16
 
 require (
 	github.com/rs/zerolog v1.22.0
-	github.com/ydb-platform/ydb-go-sdk/v3 v3.26.10
+	github.com/ydb-platform/ydb-go-sdk/v3 v3.33.0
 )

@@ -543,39 +543,17 @@ func Table(l *zerolog.Logger, details trace.Details) trace.Table {
 		scope := scope + ".pool"
 		if details&trace.TablePoolSessionLifeCycleEvents != 0 {
 			scope := scope + ".session"
-			t.OnPoolSessionNew = func(info trace.TablePoolSessionNewStartInfo) func(trace.TablePoolSessionNewDoneInfo) {
+			t.OnPoolSessionAdd = func(info trace.TablePoolSessionAddInfo) {
 				l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-					Msg("try to create")
-				start := time.Now()
-				return func(info trace.TablePoolSessionNewDoneInfo) {
-					if info.Error == nil {
-						session := info.Session
-						l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-							Str("id", session.ID()).
-							Str("status", session.Status()).
-							Msg("created")
-					} else {
-						l.Error().Caller().Timestamp().Str("scope", scope).Str("version", version).
-							Dur("latency", time.Since(start)).
-							Err(info.Error).
-							Msg("created")
-					}
-				}
+					Str("id", info.Session.ID()).
+					Str("status", info.Session.Status()).
+					Msg("session added to pool")
 			}
-			t.OnPoolSessionClose = func(info trace.TablePoolSessionCloseStartInfo) func(trace.TablePoolSessionCloseDoneInfo) {
-				session := info.Session
+			t.OnPoolSessionRemove = func(info trace.TablePoolSessionRemoveInfo) {
 				l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-					Str("id", session.ID()).
-					Str("status", session.Status()).
-					Msg("closing")
-				start := time.Now()
-				return func(info trace.TablePoolSessionCloseDoneInfo) {
-					l.Debug().Caller().Timestamp().Str("scope", scope).Str("version", version).
-						Dur("latency", time.Since(start)).
-						Str("id", session.ID()).
-						Str("status", session.Status()).
-						Msg("closed")
-				}
+					Str("id", info.Session.ID()).
+					Str("status", info.Session.Status()).
+					Msg("session removed from pool")
 			}
 			t.OnPoolStateChange = func(info trace.TablePoolStateChangeInfo) {
 				l.Info().Caller().Timestamp().Str("scope", scope).Str("version", version).
