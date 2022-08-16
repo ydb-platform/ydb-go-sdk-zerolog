@@ -9,7 +9,7 @@ import (
 	"github.com/ydb-platform/ydb-go-sdk/v3/trace"
 )
 
-func Retry(l *zerolog.Logger, details trace.Details) (t trace.Retry) {
+func Retry(l *zerolog.Logger, details trace.Details, opts ...option) (t trace.Retry) {
 	if details&trace.RetryEvents != 0 {
 		scope := "ydb.retry"
 		t.OnRetry = func(info trace.RetryLoopStartInfo) func(trace.RetryLoopIntermediateInfo) func(trace.RetryLoopDoneInfo) {

@@ -11,7 +11,7 @@ import (
 )
 
 // Table makes trace.Table with zerolog logging
-func Table(l *zerolog.Logger, details trace.Details) trace.Table {
+func Table(l *zerolog.Logger, details trace.Details, opts ...option) trace.Table {
 	scope := "ydb.table"
 	t := trace.Table{}
 	if details&trace.TableEvents != 0 {

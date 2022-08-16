@@ -6,6 +6,6 @@ import (
 	"github.com/ydb-platform/ydb-go-sdk/v3/trace"
 )
 
-func Coordination(log *zerolog.Logger, details trace.Details) (t trace.Coordination) {
+func Coordination(log *zerolog.Logger, details trace.Details, opts ...option) (t trace.Coordination) {
 	return t
 }

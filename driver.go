@@ -10,7 +10,7 @@ import (
 )
 
 // Driver makes trace.Driver with zerol lging
-func Driver(l *zerolog.Logger, details trace.Details) trace.Driver {
+func Driver(l *zerolog.Logger, details trace.Details, opts ...option) trace.Driver {
 	scope := "ydb.driver"
 	t := trace.Driver{}
 	if details&trace.DriverNetEvents != 0 {
