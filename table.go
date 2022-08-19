@@ -22,8 +22,7 @@ func Table(l *zerolog.Logger, details trace.Details, opts ...option) trace.Table
 			return func(info trace.TableInitDoneInfo) {
 				l.Info().Caller().Timestamp().Str("scope", scope).
 					Dur("latency", time.Since(start)).
-					Int("minSize", info.KeepAliveMinSize).
-					Int("maxSize", info.Limit).
+					Int("limit", info.Limit).
 					Msg("initialized")
 			}
 		}
