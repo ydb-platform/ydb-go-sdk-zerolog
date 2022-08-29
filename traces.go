@@ -13,6 +13,7 @@ func WithTraces(l *zerolog.Logger, details trace.Details, opts ...option) ydb.Op
 		ydb.WithTraceTable(Table(l, details, opts...)),
 		ydb.WithTraceScripting(Scripting(l, details, opts...)),
 		ydb.WithTraceScheme(Scheme(l, details, opts...)),
+		ydb.WithTraceTopic(Topic(l, details, opts...)),
 		ydb.WithTraceCoordination(Coordination(l, details, opts...)),
 		ydb.WithTraceRatelimiter(Ratelimiter(l, details, opts...)),
 		ydb.WithTraceDiscovery(Discovery(l, details, opts...)),
