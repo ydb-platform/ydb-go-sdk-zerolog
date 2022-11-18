@@ -81,6 +81,9 @@ func Table(l *zerolog.Logger, details trace.Details, opts ...option) trace.Table
 		}
 		t.OnDo = func(info trace.TableDoStartInfo) func(info trace.TableDoIntermediateInfo) func(trace.TableDoDoneInfo) {
 			idempotent := info.Idempotent
+			if info.NestedCall {
+				l.Error().Caller().Timestamp().Msg("nested call")
+			}
 			l.Debug().Caller().Timestamp().Str("scope", do).
 				Bool("idempotent", idempotent).
 				Msg("init")
@@ -133,6 +136,9 @@ func Table(l *zerolog.Logger, details trace.Details, opts ...option) trace.Table
 		}
 		t.OnDoTx = func(info trace.TableDoTxStartInfo) func(info trace.TableDoTxIntermediateInfo) func(trace.TableDoTxDoneInfo) {
 			idempotent := info.Idempotent
+			if info.NestedCall {
+				l.Error().Caller().Timestamp().Msg("nested call")
+			}
 			l.Debug().Caller().Timestamp().Str("scope", doTx).
 				Bool("idempotent", idempotent).
 				Msg("init")

@@ -14,6 +14,9 @@ func Retry(l *zerolog.Logger, details trace.Details, opts ...option) (t trace.Re
 		scope := "ydb.retry"
 		t.OnRetry = func(info trace.RetryLoopStartInfo) func(trace.RetryLoopIntermediateInfo) func(trace.RetryLoopDoneInfo) {
 			idempotent := info.Idempotent
+			if info.NestedCall {
+				l.Error().Caller().Timestamp().Msg("nested call")
+			}
 			l.Debug().Caller().Timestamp().Str("scope", scope).
 				Bool("idempotent", idempotent).
 				Msg("init")
