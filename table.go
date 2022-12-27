@@ -317,6 +317,7 @@ func Table(l *zerolog.Logger, details trace.Details, opts ...option) trace.Table
 						Str("status", session.Status()).
 						Str("yql", query.String()).
 						Str("params", params.String()).
+						Bool("keepInCache", info.KeepInCache).
 						Msg("executing")
 					start := time.Now()
 					return func(info trace.TableExecuteDataQueryDoneInfo) {
