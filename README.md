@@ -5,29 +5,35 @@ zerolog package helps to create ydb-go-sdk traces with logging driver events wit
 ## Usage
 ```go
 import (
-    "fmt"
-    "sync/mutex"
-    "time"
+	"context"
+	"os"
 
-    "go.uber.org/zap"
+	"github.com/rs/zerolog"
+	"github.com/ydb-platform/ydb-go-sdk/v3"
+	"github.com/ydb-platform/ydb-go-sdk/v3/trace"
 
-    "github.com/ydb-platform/ydb-go-sdk/v3"
-
-    ydbZerolog "github.com/ydb-platform/ydb-go-sdk-zerolog"
+	ydbZerolog "github.com/ydb-platform/ydb-go-sdk-zerolog"
 )
 
 func main() {
-	// init your zap.Logger
-	log = zerolog.New(os.Stdout).With().Timestamp().Logger()
-	
-    db, err := ydb.Open(
-        context.Background(),
+	// init your zerolog.Logger
+	log := zerolog.New(os.Stdout).With().Timestamp().Logger()
+
+	db, err := ydb.Open(
+		context.Background(),
 		os.Getenv("YDB_CONNECTION_STRING"),
 		ydbZerolog.WithTraces(
 			&log,
-			ydbZerolog.DetailsAll,
+			trace.DetailsAll,
 		),
 	)
-    // work with db
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		_ = db.Close(context.Background())
+	}()
+
+	// work with db
 }
 ```
