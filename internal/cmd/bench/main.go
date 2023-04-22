@@ -7,14 +7,11 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"path"
-	"strconv"
 	"sync"
 	"time"
 
 	"github.com/rs/zerolog"
-
 	"github.com/ydb-platform/ydb-go-sdk/v3"
-	"github.com/ydb-platform/ydb-go-sdk/v3/balancers"
 	"github.com/ydb-platform/ydb-go-sdk/v3/table"
 	"github.com/ydb-platform/ydb-go-sdk/v3/table/options"
 	"github.com/ydb-platform/ydb-go-sdk/v3/table/types"
@@ -24,7 +21,7 @@ import (
 )
 
 var (
-	log = zerolog.New(os.Stdout).With().Timestamp().Logger()
+	log = zerolog.New(zerolog.NewConsoleWriter()).With().Timestamp().Logger()
 )
 
 func main() {
@@ -40,7 +37,6 @@ func main() {
 		ctx,
 		os.Getenv("YDB_CONNECTION_STRING"),
 		ydb.WithDialTimeout(5*time.Second),
-		ydb.WithBalancer(balancers.RandomChoice()),
 		creds,
 		ydb.WithSessionPoolSizeLimit(300),
 		ydb.WithSessionPoolIdleThreshold(time.Second*5),
@@ -55,20 +51,11 @@ func main() {
 
 	wg := &sync.WaitGroup{}
 
-	if concurrency, err := strconv.Atoi(os.Getenv("YDB_PREPARE_BENCH_DATA")); err == nil && concurrency > 0 {
-		_ = upsertData(ctx, db.Table(), db.Name(), "series", concurrency)
-	}
+	_ = upsertData(ctx, db.Table(), db.Name(), "series", 10)
 
-	concurrency := func() int {
-		if concurrency, err := strconv.Atoi(os.Getenv("CONCURRENCY")); err != nil {
-			return concurrency
-		}
-		return 300
-	}()
+	wg.Add(10)
 
-	wg.Add(concurrency)
-
-	for i := 0; i < concurrency; i++ {
+	for i := 0; i < 10; i++ {
 		go func() {
 			defer wg.Done()
 			for {
