@@ -63,7 +63,7 @@ func fieldToField(e *zerolog.Event, field log.Field) *zerolog.Event {
 	case log.StringerType:
 		return e.Stringer(field.Key(), field.Stringer())
 	default:
-		return e.Any(field.Key(), field.AnyValue())
+		return e.Interface(field.Key(), field.AnyValue())
 	}
 }
 
