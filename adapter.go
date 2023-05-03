@@ -1,6 +1,7 @@
 package zerolog
 
 import (
+	"context"
 	"strings"
 
 	"github.com/rs/zerolog"
@@ -14,19 +15,15 @@ type adapter struct {
 	l *zerolog.Logger
 }
 
-func (a adapter) Log(params log.Params, msg string, fields ...log.Field) {
-	fieldsToFields(
-		a.l.
-			WithLevel(
-				lvl2lvl(params.Level),
-			).
-			Str("scope", strings.Join(params.Namespace, ".")),
+func (a adapter) Log(ctx context.Context, msg string, fields ...log.Field) {
+	appendFields(
+		a.l.WithLevel(level(ctx)).Str("namespace", strings.Join(log.NamesFromContext(ctx), ".")),
 		fields,
 	).Msg(msg)
 }
 
-func lvl2lvl(lvl log.Level) zerolog.Level {
-	switch lvl {
+func level(ctx context.Context) zerolog.Level {
+	switch log.LevelFromContext(ctx) {
 	case log.TRACE:
 		return zerolog.TraceLevel
 	case log.DEBUG:
@@ -67,7 +64,7 @@ func fieldToField(e *zerolog.Event, field log.Field) *zerolog.Event {
 	}
 }
 
-func fieldsToFields(e *zerolog.Event, fields []log.Field) *zerolog.Event {
+func appendFields(e *zerolog.Event, fields []log.Field) *zerolog.Event {
 	for _, f := range fields {
 		e = fieldToField(e, f)
 	}
