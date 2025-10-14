@@ -18,7 +18,7 @@ type adapter struct {
 func (a adapter) Log(ctx context.Context, msg string, fields ...log.Field) {
 	appendFields(
 		a.l.WithLevel(level(ctx)).Str("namespace", strings.Join(log.NamesFromContext(ctx), ".")),
-		fields,
+		append(log.FieldsFromContext(ctx), fields...),
 	).Msg(msg)
 }
 
